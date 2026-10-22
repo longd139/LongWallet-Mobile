@@ -93,10 +93,22 @@ class SupabaseService {
     return TransactionModel.fromJson(response);
   }
 
-  Future<void> updateTransactionStatus(String id, String newStatus) async {
+  Future<void> updateTransactionStatus(
+    String id,
+    String newStatus, {
+    String? note,
+    String? categoryId,
+  }) async {
+    final Map<String, dynamic> updateData = {
+      'status': newStatus,
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    if (note != null && note.isNotEmpty) updateData['note'] = note;
+    if (categoryId != null && categoryId.isNotEmpty) updateData['category_id'] = categoryId;
+
     await client
         .from('transactions')
-        .update({'status': newStatus, 'updated_at': DateTime.now().toIso8601String()})
+        .update(updateData)
         .eq('id', id);
   }
 

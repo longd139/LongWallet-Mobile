@@ -77,26 +77,120 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Type Selector
-            Row(
-              children: [
-                Expanded(
-                  child: ChoiceChip(
-                    label: const Center(child: Text('Chi tiêu')),
-                    selected: _selectedType == 'EXPENSE',
-                    selectedColor: AppTheme.expenseRed.withOpacity(0.2),
-                    onSelected: (val) => setState(() => _selectedType = 'EXPENSE'),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceDark,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.cardDark.withOpacity(0.8)),
+              ),
+              child: Row(
+                children: [
+                  // Chi tiêu (Expense)
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedType = 'EXPENSE'),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _selectedType == 'EXPENSE'
+                              ? AppTheme.expenseRed
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: _selectedType == 'EXPENSE'
+                              ? [
+                                  BoxShadow(
+                                    color: AppTheme.expenseRed.withOpacity(0.35),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.arrow_downward_rounded,
+                              size: 18,
+                              color: _selectedType == 'EXPENSE'
+                                  ? Colors.white
+                                  : AppTheme.textMuted,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Chi tiêu',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: _selectedType == 'EXPENSE'
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: _selectedType == 'EXPENSE'
+                                    ? Colors.white
+                                    : AppTheme.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ChoiceChip(
-                    label: const Center(child: Text('Thu nhập')),
-                    selected: _selectedType == 'INCOME',
-                    selectedColor: AppTheme.incomeGreen.withOpacity(0.2),
-                    onSelected: (val) => setState(() => _selectedType = 'INCOME'),
+
+                  // Thu nhập (Income)
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedType = 'INCOME'),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: _selectedType == 'INCOME'
+                              ? AppTheme.incomeGreen
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: _selectedType == 'INCOME'
+                              ? [
+                                  BoxShadow(
+                                    color: AppTheme.incomeGreen.withOpacity(0.35),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.arrow_upward_rounded,
+                              size: 18,
+                              color: _selectedType == 'INCOME'
+                                  ? Colors.white
+                                  : AppTheme.textMuted,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Thu nhập',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: _selectedType == 'INCOME'
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: _selectedType == 'INCOME'
+                                    ? Colors.white
+                                    : AppTheme.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -104,10 +198,19 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              decoration: const InputDecoration(
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: _selectedType == 'EXPENSE' ? AppTheme.expenseRed : AppTheme.incomeGreen,
+              ),
+              decoration: InputDecoration(
                 labelText: 'Số tiền (VND)',
-                prefixText: '₫ ',
+                prefixText: _selectedType == 'EXPENSE' ? '- ₫ ' : '+ ₫ ',
+                prefixStyle: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: _selectedType == 'EXPENSE' ? AppTheme.expenseRed : AppTheme.incomeGreen,
+                ),
                 hintText: '0',
               ),
             ),

@@ -13,15 +13,45 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _fullNameController = TextEditingController();
+
   bool _isSignUp = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _fullNameController.dispose();
     super.dispose();
+  }
+
+  bool get _isPasswordMismatch {
+    if (!_isSignUp) return false;
+    final pass = _passwordController.text;
+    final confirm = _confirmPasswordController.text;
+    return confirm.isNotEmpty && pass != confirm;
+  }
+
+  bool get _isFormValid {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) return false;
+
+    if (_isSignUp) {
+      final fullName = _fullNameController.text.trim();
+      final confirmPassword = _confirmPasswordController.text.trim();
+      if (fullName.isEmpty) return false;
+      if (confirmPassword.isEmpty) return false;
+      if (password != confirmPassword) return false;
+      if (password.length < 6) return false;
+    }
+
+    return true;
   }
 
   void _handleSubmit() async {
@@ -29,9 +59,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
+    if (!_isFormValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập đầy đủ email và mật khẩu')),
+        const SnackBar(content: Text('Vui lòng kiểm tra và điền đầy đủ thông tin hợp lệ')),
       );
       return;
     }
@@ -40,8 +70,33 @@ class _LoginScreenState extends State<LoginScreen> {
       if (_isSignUp) {
         await auth.signUp(email, password, fullName: _fullNameController.text.trim());
         if (mounted) {
+          setState(() {
+            _isSignUp = false;
+            _passwordController.clear();
+            _confirmPasswordController.clear();
+          });
+
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Đăng ký thành công! Vui lòng kiểm tra email nếu có xác thực.')),
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle_rounded, color: Colors.white),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Đăng ký thành công! Vui lòng nhập lại mật khẩu để đăng nhập.',
+                      style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: AppTheme.primaryEmerald,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
           );
         }
       } else {
@@ -87,15 +142,27 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Quản lý chi tiêu thông minh & Tự động ghi nhận biến động ngân hàng',
+                  'Cày cuốc gom tiền – Quyết liền Winner X',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.textMuted),
+                  style: TextStyle(
+                    color: AppTheme.primaryEmerald,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 4),
+                const Text(
+                  'Quản lý chi tiêu & Tự động ghi nhận biến động số dư',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                ),
+                const SizedBox(height: 36),
 
                 if (_isSignUp) ...[
                   TextField(
                     controller: _fullNameController,
+                    onChanged: (_) => setState(() {}),
+                    textCapitalization: TextCapitalization.words,
                     decoration: const InputDecoration(
                       labelText: 'Họ và tên',
                       prefixIcon: Icon(Icons.person_outline),
@@ -106,6 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 TextField(
                   controller: _emailController,
+                  onChanged: (_) => setState(() {}),
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: 'Email',
@@ -116,16 +184,53 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 TextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscurePassword,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
                     labelText: 'Mật khẩu',
-                    prefixIcon: Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      ),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                    errorText: _isSignUp &&
+                            _passwordController.text.isNotEmpty &&
+                            _passwordController.text.length < 6
+                        ? 'Mật khẩu phải từ 6 ký tự trở lên'
+                        : null,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+
+                if (_isSignUp) ...[
+                  TextField(
+                    controller: _confirmPasswordController,
+                    obscureText: _obscureConfirmPassword,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      labelText: 'Xác nhận mật khẩu',
+                      prefixIcon: const Icon(Icons.lock_reset_outlined),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
+                        onPressed: () =>
+                            setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                      ),
+                      errorText: _isPasswordMismatch ? 'Mật khẩu xác nhận không khớp' : null,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+
+                const SizedBox(height: 16),
 
                 ElevatedButton(
-                  onPressed: auth.isLoading ? null : _handleSubmit,
+                  onPressed: (auth.isLoading || !_isFormValid) ? null : _handleSubmit,
                   child: auth.isLoading
                       ? const SizedBox(
                           height: 20,
@@ -140,6 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     setState(() {
                       _isSignUp = !_isSignUp;
+                      _confirmPasswordController.clear();
                     });
                   },
                   child: Text(

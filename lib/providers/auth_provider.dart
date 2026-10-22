@@ -37,12 +37,14 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final response = await _supabase.auth.signUp(
+      await _supabase.auth.signUp(
         email: email,
         password: password,
         data: fullName != null ? {'full_name': fullName} : null,
       );
-      _user = response.user;
+      // Không tự động đăng nhập, để người dùng tự nhập mật khẩu đăng nhập lại
+      await _supabase.auth.signOut();
+      _user = null;
     } finally {
       _isLoading = false;
       notifyListeners();

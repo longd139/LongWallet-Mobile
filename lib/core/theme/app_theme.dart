@@ -21,6 +21,11 @@ class AppTheme {
       surface: surfaceDark,
       error: expenseRed,
     ),
+    dividerTheme: const DividerThemeData(
+      color: Colors.transparent,
+      thickness: 0,
+      space: 0,
+    ),
     cardTheme: CardTheme(
       color: surfaceDark,
       elevation: 0,

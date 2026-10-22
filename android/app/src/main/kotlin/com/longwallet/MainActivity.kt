@@ -9,6 +9,13 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.os.Build
+import androidx.core.app.NotificationCompat
+
 class MainActivity : FlutterFragmentActivity() {
     private val METHOD_CHANNEL = "com.longwallet/native"
     private val EVENT_CHANNEL = "com.longwallet/notification_stream"
@@ -26,6 +33,26 @@ class MainActivity : FlutterFragmentActivity() {
                 }
                 "openNotificationSettings" -> {
                     openNotificationSettings()
+                    result.success(true)
+                }
+                "showSystemNotification" -> {
+                    val title = call.argument<String>("title") ?: "LongWallet"
+                    val message = call.argument<String>("message") ?: ""
+                    showSystemNotification(title, message)
+                    result.success(true)
+                }
+                "requestNotificationPermission" -> {
+                    requestNotificationPermission()
+                    result.success(true)
+                }
+                "updateOngoingNotification" -> {
+                    val title = call.argument<String>("title") ?: "LongWallet"
+                    val message = call.argument<String>("message") ?: ""
+                    updateOngoingNotification(title, message)
+                    result.success(true)
+                }
+                "cancelOngoingNotification" -> {
+                    cancelOngoingNotification()
                     result.success(true)
                 }
                 else -> result.notImplemented()
@@ -70,5 +97,107 @@ class MainActivity : FlutterFragmentActivity() {
     private fun openNotificationSettings() {
         val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
         startActivity(intent)
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                androidx.core.app.ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    101
+                )
+            }
+        }
+    }
+
+    private fun showSystemNotification(title: String, message: String) {
+        val channelId = "longwallet_transactions"
+        val channelName = "Biến động số dư LongWallet"
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Thông báo khi có biến động tài khoản ngân hàng"
+                enableVibration(true)
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            System.currentTimeMillis().toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(android.R.drawable.stat_notify_chat)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+
+        notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
+    }
+
+    private val ONGOING_NOTIFICATION_ID = 9999
+
+    private fun updateOngoingNotification(title: String, message: String) {
+        val channelId = "longwallet_transactions"
+        val channelName = "Biến động số dư LongWallet"
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Thông báo khi có biến động tài khoản ngân hàng"
+                enableVibration(true)
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            ONGOING_NOTIFICATION_ID,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(android.R.drawable.stat_notify_chat)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setOngoing(true) // Cố định trên thanh thông báo, không bị vuốt bỏ
+            .setAutoCancel(false)
+            .setContentIntent(pendingIntent)
+
+        notificationManager.notify(ONGOING_NOTIFICATION_ID, builder.build())
+    }
+
+    private fun cancelOngoingNotification() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(ONGOING_NOTIFICATION_ID)
     }
 }
