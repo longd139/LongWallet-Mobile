@@ -49,7 +49,7 @@ class NotificationService {
 
         if (parsed != null) {
           print('Auto-detected transaction: ${parsed.amount} VND (${parsed.type})');
-          onNewTransaction?.invoke(parsed);
+          onNewTransaction?.call(parsed);
 
           // Find matching wallet by bank package or fallback to first wallet
           try {
