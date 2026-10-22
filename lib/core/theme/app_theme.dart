@@ -1,0 +1,74 @@
+import 'package:flutter/material.dart';
+
+class AppTheme {
+  static const Color primaryEmerald = Color(0xFF10B981);
+  static const Color primaryDark = Color(0xFF0F172A);
+  static const Color surfaceDark = Color(0xFF1E293B);
+  static const Color cardDark = Color(0xFF334155);
+  static const Color textMuted = Color(0xFF94A3B8);
+
+  static const Color expenseRed = Color(0xFFEF4444);
+  static const Color incomeGreen = Color(0xFF10B981);
+  static const Color transferBlue = Color(0xFF3B82F6);
+
+  static final ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    scaffoldBackgroundColor: primaryDark,
+    colorScheme: const ColorScheme.dark(
+      primary: primaryEmerald,
+      secondary: transferBlue,
+      surface: surfaceDark,
+      error: expenseRed,
+    ),
+    cardTheme: CardTheme(
+      color: surfaceDark,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: cardDark.withOpacity(0.5)),
+      ),
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: primaryDark,
+      elevation: 0,
+      centerTitle: true,
+      titleTextStyle: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryEmerald,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        textStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: surfaceDark,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: cardDark),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: cardDark),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: primaryEmerald, width: 2),
+      ),
+      labelStyle: const TextStyle(color: textMuted),
+    ),
+  );
+}
