@@ -5,7 +5,7 @@ import '../../models/category_model.dart';
 import '../../models/budget_model.dart';
 
 class SupabaseService {
-  final SupabaseClient client = Supabase.instance.client;
+  SupabaseClient get client => Supabase.instance.client;
 
   String? get currentUserId => client.auth.currentUser?.id;
 
@@ -130,5 +130,25 @@ class SupabaseService {
         .eq('month_year', monthYear);
 
     return (response as List).map((e) => BudgetModel.fromJson(e)).toList();
+  }
+
+  Future<BudgetModel> setBudget({
+    required String categoryId,
+    required double amountLimit,
+    required String monthYear,
+  }) async {
+    final response = await client.from('budgets').upsert({
+      'user_id': currentUserId,
+      'category_id': categoryId,
+      'amount_limit': amountLimit,
+      'month_year': monthYear,
+      'updated_at': DateTime.now().toIso8601String(),
+    }, onConflict: 'user_id,category_id,month_year').select().single();
+
+    return BudgetModel.fromJson(response);
+  }
+
+  Future<void> deleteBudget(String id) async {
+    await client.from('budgets').delete().eq('id', id);
   }
 }

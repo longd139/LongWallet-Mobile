@@ -7,8 +7,8 @@ import '../../providers/transaction_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/notification_service.dart';
 import '../transactions/add_transaction_screen.dart';
-import '../transactions/pending_transactions_screen.dart';
 import '../wallets/wallets_screen.dart';
+import '../budget/budget_screen.dart';
 import '../stats/stats_screen.dart';
 
 import '../../core/widgets/custom_bottom_nav_bar.dart';
@@ -173,6 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final screens = [
       _buildHomeDashboard(),
       const WalletsScreen(),
+      const BudgetScreen(),
       const StatsScreen(),
       _buildProfileScreen(),
     ];
@@ -205,6 +206,12 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Ví',
             activeColor: Color(0xFF38BDF8), // Pastel Sky Blue
             activeHaloColor: Color(0x3D0284C7),
+          ),
+          CustomNavItem(
+            icon: Icons.pie_chart_outline_rounded,
+            label: 'Ngân sách',
+            activeColor: Color(0xFFA855F7), // Vivid Purple
+            activeHaloColor: Color(0x3D9333EA),
           ),
           CustomNavItem(
             icon: Icons.explore_outlined,
