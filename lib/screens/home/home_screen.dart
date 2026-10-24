@@ -11,6 +11,8 @@ import '../wallets/wallets_screen.dart';
 import '../budget/budget_screen.dart';
 import '../stats/stats_screen.dart';
 import '../categories/categories_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/constants/winner_x_image.dart';
 
 import '../../core/widgets/custom_bottom_nav_bar.dart';
 import 'widgets/pending_question_card.dart';
@@ -28,16 +30,32 @@ class _HomeScreenState extends State<HomeScreen> {
   final NotificationService _notificationService = NotificationService();
   final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
+  String _goalTitle = 'Honda Winner X V4';
+  double _goalTargetAmount = 50000000;
+  String _goalSlogan = 'Cày cuốc gom tiền – Quyết liền Winner X';
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
+    _loadGoal();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WalletProvider>().fetchWallets();
       context.read<TransactionProvider>().fetchTransactions();
       _notificationService.requestPostNotificationPermission();
       _checkNotificationPermission();
     });
+  }
+
+  void _loadGoal() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _goalTitle = prefs.getString('goal_title') ?? 'Honda Winner X V4';
+        _goalTargetAmount = prefs.getDouble('goal_target') ?? 50000000;
+        _goalSlogan = prefs.getString('goal_slogan') ?? 'Cày cuốc gom tiền – Quyết liền Winner X';
+      });
+    }
   }
 
   @override
@@ -453,158 +471,347 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String _formatTargetShort(double amount) {
+    if (amount >= 1000000) {
+      final millions = amount / 1000000;
+      return millions % 1 == 0 ? '${millions.toInt()}tr' : '${millions.toStringAsFixed(1)}tr';
+    }
+    return currencyFormatter.format(amount);
+  }
+
   Widget _buildGoalCard(double currentBalance) {
-    const double goalTarget = 50000000; // Mục tiêu 50.000.000 đ cho Honda Winner X V4
-    final progress = (currentBalance / goalTarget).clamp(0.0, 1.0);
+    final progress = (_goalTargetAmount > 0 ? (currentBalance / _goalTargetAmount) : 0.0).clamp(0.0, 1.0);
     final percent = (progress * 100).toStringAsFixed(1);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF141923),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _showEditGoalDialog,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFFDC2626).withOpacity(0.35),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFDC2626).withOpacity(0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF141923),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: const Color(0xFFDC2626).withOpacity(0.35),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFDC2626).withOpacity(0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Left: Thông tin & Tiến trình tiết kiệm
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Left: Thông tin & Tiến trình tiết kiệm
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDC2626).withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(6),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDC2626).withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.flag_rounded, size: 12, color: Color(0xFFEF4444)),
+                              SizedBox(width: 4),
+                              Text(
+                                'MỤC TIÊU LỚN',
+                                style: TextStyle(
+                                  color: Color(0xFFEF4444),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.edit_outlined, size: 13, color: Colors.white38),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _goalTitle,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _goalSlogan,
+                      style: const TextStyle(
+                        color: AppTheme.textMuted,
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 6,
+                        backgroundColor: Colors.white10,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFEF4444)),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${currencyFormatter.format(currentBalance)} / ${_formatTargetShort(_goalTargetAmount)}',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          '$percent%',
+                          style: const TextStyle(
+                            color: Color(0xFFEF4444),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Right: Hình ảnh chiếc xe Winner X V4 (Nền trong suốt)
+              SizedBox(
+                width: 108,
+                height: 88,
+                child: Image.memory(
+                  WinnerXImage.bytes,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDC2626).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.two_wheeler_rounded,
+                        color: Color(0xFFEF4444),
+                        size: 40,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditGoalDialog() {
+    final titleController = TextEditingController(text: _goalTitle);
+    final amountController = TextEditingController(
+      text: _goalTargetAmount.toInt().toString(),
+    );
+    final sloganController = TextEditingController(text: _goalSlogan);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Container(
+            padding: EdgeInsets.only(
+              top: 20,
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            decoration: const BoxDecoration(
+              color: AppTheme.surfaceDark,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
                         children: [
-                          Icon(Icons.flag_rounded, size: 12, color: Color(0xFFEF4444)),
-                          SizedBox(width: 4),
+                          Icon(Icons.flag_rounded, color: Color(0xFFEF4444)),
+                          SizedBox(width: 8),
                           Text(
-                            'MỤC TIÊU LỚN',
+                            'Chỉnh sửa mục tiêu tài chính',
                             style: TextStyle(
-                              color: Color(0xFFEF4444),
-                              fontSize: 10,
+                              fontSize: 17,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
+                              color: Colors.white,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Honda Winner X V4',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Cày cuốc gom tiền – Quyết liền Winner X',
-                  style: TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 11,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 6,
-                    backgroundColor: Colors.white10,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFEF4444)),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${currencyFormatter.format(currentBalance)} / 50tr',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                      IconButton(
+                        icon: const Icon(Icons.close, color: AppTheme.textMuted),
+                        onPressed: () => Navigator.pop(ctx),
                       ),
-                    ),
-                    Text(
-                      '$percent%',
-                      style: const TextStyle(
-                        color: Color(0xFFEF4444),
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Right: Hình ảnh chiếc xe Winner X V4
-          Container(
-            width: 108,
-            height: 88,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Image.network(
-              'https://bizweb.dktcdn.net/thumb/1024x1024/100/501/269/products/winnerx-db-do.png?v=1718858313993',
-              fit: BoxFit.contain,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return const Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFFEF4444),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: titleController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Tên mục tiêu',
+                      hintText: 'Ví dụ: Honda Winner X V4',
+                      prefixIcon: Icon(Icons.two_wheeler_rounded, color: Color(0xFFEF4444)),
                     ),
                   ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) => Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDC2626).withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.two_wheeler_rounded,
-                    color: Color(0xFFEF4444),
-                    size: 40,
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: amountController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    decoration: const InputDecoration(
+                      labelText: 'Số tiền mục tiêu (VNĐ)',
+                      hintText: '50000000',
+                      prefixIcon: Icon(Icons.monetization_on_outlined, color: AppTheme.primaryEmerald),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  // Quick suggestion chips
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      _buildQuickAmountChip('30 triệu', 30000000, amountController, setSheetState),
+                      _buildQuickAmountChip('45 triệu', 45000000, amountController, setSheetState),
+                      _buildQuickAmountChip('50 triệu', 50000000, amountController, setSheetState),
+                      _buildQuickAmountChip('60 triệu', 60000000, amountController, setSheetState),
+                      _buildQuickAmountChip('80 triệu', 80000000, amountController, setSheetState),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: sloganController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      labelText: 'Khẩu hiệu động lực',
+                      hintText: 'Ví dụ: Cày cuốc gom tiền – Quyết liền Winner X',
+                      prefixIcon: Icon(Icons.format_quote_rounded, color: AppTheme.textMuted),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final newTitle = titleController.text.trim();
+                      final rawAmount = amountController.text.replaceAll(',', '').replaceAll('.', '').trim();
+                      final newAmount = double.tryParse(rawAmount);
+                      final newSlogan = sloganController.text.trim();
+
+                      if (newTitle.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Vui lòng nhập tên mục tiêu')),
+                        );
+                        return;
+                      }
+
+                      if (newAmount == null || newAmount <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Vui lòng nhập số tiền mục tiêu hợp lệ')),
+                        );
+                        return;
+                      }
+
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('goal_title', newTitle);
+                      await prefs.setDouble('goal_target', newAmount);
+                      await prefs.setString('goal_slogan', newSlogan.isNotEmpty ? newSlogan : 'Quyết tâm gom tiền!');
+
+                      setState(() {
+                        _goalTitle = newTitle;
+                        _goalTargetAmount = newAmount;
+                        _goalSlogan = newSlogan.isNotEmpty ? newSlogan : 'Quyết tâm gom tiền!';
+                      });
+
+                      if (mounted) {
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Đã cập nhật mục tiêu tài chính!'),
+                            backgroundColor: AppTheme.primaryEmerald,
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFDC2626),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: const Text('Lưu mục tiêu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
+    );
+  }
+
+  Widget _buildQuickAmountChip(
+    String label,
+    double value,
+    TextEditingController controller,
+    StateSetter setSheetState,
+  ) {
+    return ActionChip(
+      label: Text(label, style: const TextStyle(fontSize: 11, color: Colors.white70)),
+      backgroundColor: AppTheme.cardDark.withOpacity(0.6),
+      side: BorderSide(color: Colors.white.withOpacity(0.1)),
+      onPressed: () {
+        setSheetState(() {
+          controller.text = value.toInt().toString();
+        });
+      },
     );
   }
 
