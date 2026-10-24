@@ -68,4 +68,40 @@ void main() {
       expect(totalAllocated, 510000.0);
     });
   });
+
+  group('AiInitialAnalysis & Questionnaire Tests', () {
+    test('AiInitialAnalysis and questions deserialize correctly with quick options', () {
+      final json = {
+        'summary': 'Tài chính thắt chặt, cần làm rõ chi phí cố định.',
+        'overview': 'Số dư khả dụng 510k cần kết hợp nguồn thu nhập mới.',
+        'questions': [
+          {
+            'id': 'monthly_income',
+            'question': 'Thu nhập dự kiến hàng tháng của bạn?',
+            'subtitle': 'Lương hoặc tiền chu cấp',
+            'default_value': 8000000.0,
+            'quick_options': [3000000.0, 5000000.0, 8000000.0, 12000000.0]
+          },
+          {
+            'id': 'fixed_expenses',
+            'question': 'Chi phí cố định bắt buộc tháng này?',
+            'subtitle': 'Tiền trọ, điện nước, internet',
+            'default_value': 2000000.0,
+            'quick_options': [1000000.0, 2000000.0, 3000000.0]
+          }
+        ]
+      };
+
+      final analysis = AiInitialAnalysis.fromJson(json);
+
+      expect(analysis.summary, 'Tài chính thắt chặt, cần làm rõ chi phí cố định.');
+      expect(analysis.questions.length, 2);
+
+      final q1 = analysis.questions.first;
+      expect(q1.id, 'monthly_income');
+      expect(q1.defaultValue, 8000000.0);
+      expect(q1.quickOptions.length, 4);
+      expect(q1.quickOptions.last, 12000000.0);
+    });
+  });
 }

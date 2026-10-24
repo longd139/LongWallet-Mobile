@@ -3,7 +3,54 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../../models/category_model.dart';
 import '../../models/debt_model.dart';
-import '../constants/app_constants.dart';
+
+class AiQuestion {
+  final String id;
+  final String question;
+  final String subtitle;
+  final double defaultValue;
+  final List<double> quickOptions;
+
+  AiQuestion({
+    required this.id,
+    required this.question,
+    required this.subtitle,
+    required this.defaultValue,
+    required this.quickOptions,
+  });
+
+  factory AiQuestion.fromJson(Map<String, dynamic> json) {
+    final opts = json['quick_options'] as List? ?? [];
+    return AiQuestion(
+      id: json['id']?.toString() ?? '',
+      question: json['question']?.toString() ?? '',
+      subtitle: json['subtitle']?.toString() ?? '',
+      defaultValue: (json['default_value'] as num?)?.toDouble() ?? 0.0,
+      quickOptions: opts.map((o) => (o as num).toDouble()).toList(),
+    );
+  }
+}
+
+class AiInitialAnalysis {
+  final String summary;
+  final String overview;
+  final List<AiQuestion> questions;
+
+  AiInitialAnalysis({
+    required this.summary,
+    required this.overview,
+    required this.questions,
+  });
+
+  factory AiInitialAnalysis.fromJson(Map<String, dynamic> json) {
+    final qList = json['questions'] as List? ?? [];
+    return AiInitialAnalysis(
+      summary: json['summary']?.toString() ?? '',
+      overview: json['overview']?.toString() ?? '',
+      questions: qList.map((q) => AiQuestion.fromJson(q as Map<String, dynamic>)).toList(),
+    );
+  }
+}
 
 class SuggestedBudget {
   final String categoryId;
@@ -40,6 +87,7 @@ class AiFinancialPlan {
   final String overview;
   final String debtPlan;
   final String goalPlan;
+  final int? estimatedMonthsToGoal;
   final double suggestedGoalSavings;
   final List<SuggestedBudget> suggestedBudgets;
   final List<String> tips;
@@ -49,6 +97,7 @@ class AiFinancialPlan {
     required this.overview,
     required this.debtPlan,
     required this.goalPlan,
+    this.estimatedMonthsToGoal,
     required this.suggestedGoalSavings,
     required this.suggestedBudgets,
     required this.tips,
@@ -64,6 +113,7 @@ class AiFinancialPlan {
       overview: strategy['overview']?.toString() ?? '',
       debtPlan: strategy['debt_plan']?.toString() ?? '',
       goalPlan: strategy['goal_plan']?.toString() ?? '',
+      estimatedMonthsToGoal: strategy['estimated_months_to_goal'] as int?,
       suggestedGoalSavings: (json['suggested_goal_savings'] as num?)?.toDouble() ?? 0.0,
       suggestedBudgets: budgetsList
           .map((b) => SuggestedBudget.fromJson(b as Map<String, dynamic>))
@@ -74,7 +124,7 @@ class AiFinancialPlan {
 }
 
 class AiService {
-  /// Danh sách các địa chỉ backend tiềm năng (Điện thoại thật qua USB/LAN, Máy ảo Emulator, Web/Desktop)
+  /// Danh sách các địa chỉ backend tiềm năng (Điện thoại thật USB adb reverse, Wi-Fi LAN, Emulator)
   static List<String> get candidateBaseUrls {
     if (kIsWeb) {
       return ['http://localhost:5000'];
@@ -82,37 +132,14 @@ class AiService {
     if (Platform.isAndroid) {
       return [
         'http://127.0.0.1:5000',   // Điện thoại thật khi cắm cáp USB (đã cấu hình adb reverse)
-        'http://192.168.1.7:5000', // Điện thoại thật qua chung mạng Wi-Fi
+        'http://192.168.1.7:5000', // Điện thoại thật qua Wi-Fi LAN
         'http://10.0.2.2:5000',    // Máy ảo Android Emulator
       ];
     }
     return ['http://localhost:5000'];
   }
 
-  /// Gửi dữ liệu tài chính lên backend để Gemini AI phân tích và lập kế hoạch ngân sách
-  Future<AiFinancialPlan> generateFinancialPlan({
-    required double totalBalance,
-    required List<DebtModel> debts,
-    required Map<String, dynamic>? goal,
-    required List<CategoryModel> categories,
-  }) async {
-    final payload = {
-      'totalBalance': totalBalance,
-      'debts': debts.map((d) => {
-        'personName': d.personName,
-        'amount': d.amount,
-        'paidAmount': d.paidAmount,
-        'remainingAmount': d.remainingAmount,
-        'monthlyDue': d.monthlyDue,
-        'dueDate': d.dueDate?.toIso8601String(),
-      }).toList(),
-      'goal': goal,
-      'categories': categories.map((c) => {
-        'id': c.id,
-        'name': c.name,
-      }).toList(),
-    };
-
+  Future<dynamic> _postToBackend(String path, Map<String, dynamic> payload) async {
     dynamic lastError;
 
     for (final base in candidateBaseUrls) {
@@ -120,7 +147,7 @@ class AiService {
       client.connectionTimeout = const Duration(seconds: 5);
 
       try {
-        final uri = Uri.parse('$base/api/ai/financial-plan');
+        final uri = Uri.parse('$base$path');
         final request = await client.postUrl(uri);
         request.headers.contentType = ContentType.json;
         request.write(jsonEncode(payload));
@@ -137,10 +164,9 @@ class AiService {
           throw Exception(json['error'] ?? 'Không nhận được dữ liệu hợp lệ từ AI');
         }
 
-        return AiFinancialPlan.fromJson(json['data'] as Map<String, dynamic>);
+        return json['data'];
       } catch (e) {
         lastError = e;
-        // Tiếp tục thử URL tiếp theo trong danh sách candidateBaseUrls
       } finally {
         client.close();
       }
@@ -150,6 +176,75 @@ class AiService {
       'Không thể kết nối đến máy chủ Backend (${candidateBaseUrls.join(", ")}).\n'
       'Chi tiết: $lastError\n'
       'Vui lòng đảm bảo backend đang chạy tại cổng 5000.',
+    );
+  }
+
+  /// Bước 1: Phân tích ban đầu và lấy danh sách câu hỏi tương tác chi tiêu cố định
+  Future<AiInitialAnalysis> getInitialAnalysis({
+    required double totalBalance,
+    required List<DebtModel> debts,
+    required Map<String, dynamic>? goal,
+  }) async {
+    final payload = {
+      'totalBalance': totalBalance,
+      'debts': debts.map((d) => {
+        'personName': d.personName,
+        'amount': d.amount,
+        'paidAmount': d.paidAmount,
+        'remainingAmount': d.remainingAmount,
+        'monthlyDue': d.monthlyDue,
+        'dueDate': d.dueDate?.toIso8601String(),
+      }).toList(),
+      'goal': goal,
+    };
+
+    final data = await _postToBackend('/api/ai/initial-analysis', payload);
+    return AiInitialAnalysis.fromJson(data as Map<String, dynamic>);
+  }
+
+  /// Bước 2: Nhận câu trả lời của người dùng và lập kế hoạch ngân sách hoàn chỉnh
+  Future<AiFinancialPlan> finalizeBudgetPlan({
+    required double totalBalance,
+    required List<DebtModel> debts,
+    required Map<String, dynamic>? goal,
+    required List<CategoryModel> categories,
+    required Map<String, dynamic> answers,
+  }) async {
+    final payload = {
+      'totalBalance': totalBalance,
+      'debts': debts.map((d) => {
+        'personName': d.personName,
+        'amount': d.amount,
+        'paidAmount': d.paidAmount,
+        'remainingAmount': d.remainingAmount,
+        'monthlyDue': d.monthlyDue,
+        'dueDate': d.dueDate?.toIso8601String(),
+      }).toList(),
+      'goal': goal,
+      'categories': categories.map((c) => {
+        'id': c.id,
+        'name': c.name,
+      }).toList(),
+      'answers': answers,
+    };
+
+    final data = await _postToBackend('/api/ai/finalize-budget', payload);
+    return AiFinancialPlan.fromJson(data as Map<String, dynamic>);
+  }
+
+  /// Tương thích ngược
+  Future<AiFinancialPlan> generateFinancialPlan({
+    required double totalBalance,
+    required List<DebtModel> debts,
+    required Map<String, dynamic>? goal,
+    required List<CategoryModel> categories,
+  }) async {
+    return finalizeBudgetPlan(
+      totalBalance: totalBalance,
+      debts: debts,
+      goal: goal,
+      categories: categories,
+      answers: {},
     );
   }
 }
