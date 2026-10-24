@@ -425,34 +425,40 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
           ),
 
           // Tabs
-          TabBar(
-            controller: _tabController,
-            labelColor: isDark ? Colors.white : const Color(0xFF0F172A),
-            unselectedLabelColor: AppTheme.textMuted,
-            indicatorColor: const Color(0xFFEF4444),
-            indicatorWeight: 3,
-            tabs: [
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Tôi nợ'),
-                    const SizedBox(width: 6),
-                    _buildBadge(debtProvider.myDebts.where((d) => !d.isSettled).length, const Color(0xFFEF4444)),
-                  ],
-                ),
-              ),
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Cho vay'),
-                    const SizedBox(width: 6),
-                    _buildBadge(debtProvider.myLoans.where((d) => !d.isSettled).length, AppTheme.primaryEmerald),
-                  ],
-                ),
-              ),
-            ],
+          AnimatedBuilder(
+            animation: _tabController,
+            builder: (context, _) {
+              final isDebtTab = _tabController.index == 0;
+              return TabBar(
+                controller: _tabController,
+                labelColor: isDark ? Colors.white : const Color(0xFF0F172A),
+                unselectedLabelColor: AppTheme.textMuted,
+                indicatorColor: isDebtTab ? const Color(0xFFEF4444) : AppTheme.primaryEmerald,
+                indicatorWeight: 3,
+                tabs: [
+                  Tab(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Tôi nợ'),
+                        const SizedBox(width: 6),
+                        _buildBadge(debtProvider.myDebts.where((d) => !d.isSettled).length, const Color(0xFFEF4444)),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Cho vay'),
+                        const SizedBox(width: 6),
+                        _buildBadge(debtProvider.myLoans.where((d) => !d.isSettled).length, AppTheme.primaryEmerald),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
 
           // Tab views
@@ -472,15 +478,24 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddDebtDialog(
-          context,
-          defaultType: _tabController.index == 0 ? 'DEBT' : 'LOAN',
-        ),
-        backgroundColor: _tabController.index == 0 ? const Color(0xFFEF4444) : AppTheme.primaryEmerald,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: Text(_tabController.index == 0 ? 'Thêm khoản nợ' : 'Thêm cho vay'),
+      floatingActionButton: AnimatedBuilder(
+        animation: _tabController,
+        builder: (context, _) {
+          final isDebtTab = _tabController.index == 0;
+          return FloatingActionButton.extended(
+            onPressed: () => _showAddDebtDialog(
+              context,
+              defaultType: isDebtTab ? 'DEBT' : 'LOAN',
+            ),
+            backgroundColor: isDebtTab ? const Color(0xFFEF4444) : AppTheme.primaryEmerald,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.add),
+            label: Text(
+              isDebtTab ? 'Thêm khoản nợ' : 'Thêm cho vay',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          );
+        },
       ),
     );
   }
