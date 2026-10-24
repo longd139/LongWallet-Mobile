@@ -328,7 +328,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               Text(
                 isOver
                     ? 'Vượt hạn mức: +${currencyFormatter.format(-remainingAfter)}'
-                    : 'Sau khi chi còn dư: ${currencyFormatter.format(remainingAfter)}',
+                    : 'Còn dư: ${currencyFormatter.format(remainingAfter)}',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
