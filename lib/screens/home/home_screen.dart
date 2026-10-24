@@ -121,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
               const Text(
-                '🧪 Thử nghiệm thông báo ngân hàng',
+                'Thử nghiệm thông báo ngân hàng',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                 textAlign: TextAlign.center,
               ),
@@ -439,7 +439,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('✅ Đã ghi nhận: $note'),
+                            content: Text('Đã ghi nhận: $note'),
                             duration: const Duration(seconds: 2),
                           ),
                         );
@@ -632,7 +632,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     )
                   else
                     Text(
-                      'Không có nợ tồn đọng ✨',
+                      'Không có nợ tồn đọng',
                       style: TextStyle(
                         color: isDark ? AppTheme.textMuted : const Color(0xFF94A3B8),
                         fontSize: 11,
@@ -684,7 +684,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: isDark
@@ -725,19 +725,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Text(
-                          'Trợ lý AI Lập Ngân Sách',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        Flexible(
+                          child: Text(
+                            'Trợ lý AI Lập Ngân Sách',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 6),
