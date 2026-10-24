@@ -42,8 +42,9 @@ class DebtModel {
   double get monthlyDue {
     if (isSettled) return 0.0;
     final rem = remainingAmount;
-    if (monthlyAmount != null && monthlyAmount! > 0) {
-      return monthlyAmount! > rem ? rem : monthlyAmount!;
+    final m = monthlyAmount;
+    if (m != null && m > 0) {
+      return m > rem ? rem : m;
     }
     return rem;
   }

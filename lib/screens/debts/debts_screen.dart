@@ -236,7 +236,7 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                           const SizedBox(width: 10),
                           Text(
                             selectedDueDate != null
-                                ? 'Hạn trả: ${DateFormat('dd/MM/yyyy').format(selectedDueDate!)}'
+                                ? 'Hạn trả: ${DateFormat('dd/MM/yyyy').format(selectedDueDate as DateTime)}'
                                 : 'Chọn hạn trả nợ (Không bắt buộc)',
                             style: TextStyle(
                               color: selectedDueDate != null
@@ -738,7 +738,7 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Hạn: ${DateFormat('dd/MM/yyyy').format(item.dueDate!)}',
+                          'Hạn: ${DateFormat('dd/MM/yyyy').format(item.dueDate as DateTime)}',
                           style: TextStyle(
                             fontSize: 12,
                             color: isDark ? Colors.white70 : const Color(0xFF475569),
@@ -767,7 +767,7 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                       if (item.note != null && item.note!.isNotEmpty)
                         Expanded(
                           child: Text(
-                            item.note!,
+                            item.note ?? '',
                             style: const TextStyle(
                               fontSize: 12,
                               color: AppTheme.textMuted,
@@ -1002,12 +1002,12 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                         },
                       ),
                     if (item.monthlyAmount != null &&
-                        item.monthlyAmount! * 2 <= item.remainingAmount &&
-                        item.monthlyAmount! * 2 > 0)
+                        (item.monthlyAmount ?? 0.0) * 2 <= item.remainingAmount &&
+                        (item.monthlyAmount ?? 0.0) * 2 > 0)
                       ActionChip(
-                        label: Text('2 kỳ (${currencyFormatter.format(item.monthlyAmount! * 2)})', style: const TextStyle(fontSize: 11)),
+                        label: Text('2 kỳ (${currencyFormatter.format((item.monthlyAmount ?? 0.0) * 2)})', style: const TextStyle(fontSize: 11)),
                         onPressed: () {
-                          payCtrl.text = NumberFormat('#,###', 'vi_VN').format(item.monthlyAmount! * 2);
+                          payCtrl.text = NumberFormat('#,###', 'vi_VN').format((item.monthlyAmount ?? 0.0) * 2);
                         },
                       ),
                     ActionChip(

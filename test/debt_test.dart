@@ -252,5 +252,22 @@ void main() {
       // 2.000.000 + 500.000 = 2.500.000
       expect(monthlyDue, 2500000.0);
     });
+
+    test('monthlyDue handles null or zero monthlyAmount safely without exception', () {
+      final nullMonthlyDebt = DebtModel(
+        id: 'd-null',
+        userId: 'u-1',
+        personName: 'Shopee',
+        amount: 50000.0,
+        paidAmount: 50000.0,
+        monthlyAmount: null,
+        type: 'DEBT',
+        isSettled: false,
+        createdAt: now,
+      );
+
+      expect(nullMonthlyDebt.monthlyDue, 0.0);
+      expect(nullMonthlyDebt.remainingAmount, 0.0);
+    });
   });
 }

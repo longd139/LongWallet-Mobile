@@ -157,11 +157,12 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
   }
 
   Future<void> _applyPlan() async {
-    if (_finalPlan == null) return;
+    final plan = _finalPlan;
+    if (plan == null) return;
 
     setState(() => _isApplying = true);
     try {
-      await context.read<BudgetProvider>().applyAiBudgetPlan(_finalPlan!.suggestedBudgets);
+      await context.read<BudgetProvider>().applyAiBudgetPlan(plan.suggestedBudgets);
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -268,8 +269,12 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
                     : _error != null
                         ? _buildErrorState()
                         : _step == 0
-                            ? _buildStep0Questionnaire(isDark)
-                            : _buildStep1FinalPlan(isDark),
+                            ? (_initialAnalysis != null
+                                ? _buildStep0Questionnaire(isDark)
+                                : _buildLoadingState(isDark, 'Đang tải dữ liệu phân tích...'))
+                            : (_finalPlan != null
+                                ? _buildStep1FinalPlan(isDark)
+                                : _buildLoadingState(isDark, 'Đang tính toán kế hoạch ngân sách...')),
           ),
 
           // Bottom Action
@@ -345,7 +350,10 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
 
   /// Bước 0: Nhận xét tài chính ban đầu và đặt câu hỏi chi tiêu cố định
   Widget _buildStep0Questionnaire(bool isDark) {
-    final analysis = _initialAnalysis!;
+    final analysis = _initialAnalysis;
+    if (analysis == null) {
+      return _buildLoadingState(isDark, 'Đang tải câu hỏi khảo sát...');
+    }
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
@@ -497,7 +505,10 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
 
   /// Bước 1: Kế hoạch ngân sách hoàn chỉnh sau khi trả lời câu hỏi
   Widget _buildStep1FinalPlan(bool isDark) {
-    final plan = _finalPlan!;
+    final plan = _finalPlan;
+    if (plan == null) {
+      return _buildLoadingState(isDark, 'Đang tải kế hoạch ngân sách...');
+    }
     final totalBudget = plan.suggestedBudgets.fold(0.0, (s, b) => s + b.amountLimit);
 
     return ListView(

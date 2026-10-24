@@ -157,7 +157,7 @@ class _PendingQuestionCardState extends State<PendingQuestionCard> {
                 if (widget.transaction.rawMessage != null && widget.transaction.rawMessage!.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
-                    widget.transaction.rawMessage!,
+                    widget.transaction.rawMessage ?? '',
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppTheme.textMuted,
