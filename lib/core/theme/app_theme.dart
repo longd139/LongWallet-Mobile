@@ -89,6 +89,10 @@ class AppTheme {
       backgroundColor: surfaceDark,
       surfaceTintColor: Colors.transparent,
     ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+    ),
   );
 
   static final ThemeData lightTheme = ThemeData(
@@ -161,6 +165,10 @@ class AppTheme {
     bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: surfaceLight,
       surfaceTintColor: Colors.transparent,
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
     ),
   );
 }

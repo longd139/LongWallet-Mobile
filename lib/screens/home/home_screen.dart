@@ -200,65 +200,76 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
-      extendBody: true,
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(), // Only navigate through tabs
-        children: screens,
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 320),
-            curve: Curves.easeInOutCubic,
-          );
-        },
-        items: const [
-          CustomNavItem(
-            icon: Icons.grid_view_rounded,
-            label: 'Me',
-            activeColor: AppTheme.primaryEmerald, // Glowing Emerald
-            activeHaloColor: Color(0x3D10B981),
+      body: Stack(
+        children: [
+          PageView(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(), // Only navigate through tabs
+            children: screens,
           ),
-          CustomNavItem(
-            icon: Icons.account_balance_wallet_outlined,
-            label: 'Ví',
-            activeColor: Color(0xFF38BDF8), // Pastel Sky Blue
-            activeHaloColor: Color(0x3D0284C7),
-          ),
-          CustomNavItem(
-            icon: Icons.pie_chart_outline_rounded,
-            label: 'Ngân sách',
-            activeColor: Color(0xFFA855F7), // Vivid Purple
-            activeHaloColor: Color(0x3D9333EA),
-          ),
-          CustomNavItem(
-            icon: Icons.explore_outlined,
-            label: 'Explore',
-            activeColor: Color(0xFFFBBF24), // Warm Peach/Amber
-            activeHaloColor: Color(0x3DF59E0B),
-          ),
-          CustomNavItem(
-            icon: Icons.person_outline_rounded,
-            label: 'Profile',
-            activeColor: Color(0xFF818CF8), // Pastel Indigo
-            activeHaloColor: Color(0x3D6366F1),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: CustomBottomNavBar(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() => _currentIndex = index);
+                _pageController.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 320),
+                  curve: Curves.easeInOutCubic,
+                );
+              },
+              items: const [
+                CustomNavItem(
+                  icon: Icons.grid_view_rounded,
+                  label: 'Me',
+                  activeColor: AppTheme.primaryEmerald, // Glowing Emerald
+                  activeHaloColor: Color(0x3D10B981),
+                ),
+                CustomNavItem(
+                  icon: Icons.account_balance_wallet_outlined,
+                  label: 'Ví',
+                  activeColor: Color(0xFF38BDF8), // Pastel Sky Blue
+                  activeHaloColor: Color(0x3D0284C7),
+                ),
+                CustomNavItem(
+                  icon: Icons.pie_chart_outline_rounded,
+                  label: 'Ngân sách',
+                  activeColor: Color(0xFFA855F7), // Vivid Purple
+                  activeHaloColor: Color(0x3D9333EA),
+                ),
+                CustomNavItem(
+                  icon: Icons.explore_outlined,
+                  label: 'Explore',
+                  activeColor: Color(0xFFFBBF24), // Warm Peach/Amber
+                  activeHaloColor: Color(0x3DF59E0B),
+                ),
+                CustomNavItem(
+                  icon: Icons.person_outline_rounded,
+                  label: 'Profile',
+                  activeColor: Color(0xFF818CF8), // Pastel Indigo
+                  activeHaloColor: Color(0x3D6366F1),
+                ),
+              ],
+            ),
           ),
         ],
       ),
       floatingActionButton: _currentIndex == 0
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AddTransactionScreen()),
-                );
-              },
-              backgroundColor: AppTheme.primaryEmerald,
-              child: const Icon(Icons.add, color: Colors.white),
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 76),
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AddTransactionScreen()),
+                  );
+                },
+                backgroundColor: AppTheme.primaryEmerald,
+                child: const Icon(Icons.add, color: Colors.white),
+              ),
             )
           : null,
     );
