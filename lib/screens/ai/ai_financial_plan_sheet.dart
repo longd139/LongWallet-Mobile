@@ -42,6 +42,7 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
   final _currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
 
   int _step = 0; // 0: Phân tích & Hỏi câu hỏi, 1: Hiển thị ngân sách hoàn chỉnh
+  int _currentQuestionIndex = 0; // Chỉ số câu hỏi đang được hỏi (hỏi từng câu một)
   bool _isLoading = true;
   String? _error;
 
@@ -242,7 +243,9 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
                         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        _step == 0 ? 'Bước 1/2: Tìm hiểu dòng tiền của bạn' : 'Bước 2/2: Ngân sách đã cá nhân hóa',
+                        _step == 0
+                            ? 'Bước 1/2: Tìm hiểu dòng tiền (${_currentQuestionIndex + 1}/${_initialAnalysis?.questions.length ?? 3})'
+                            : 'Bước 2/2: Ngân sách đã cá nhân hóa',
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark ? Colors.white60 : const Color(0xFF64748B),
@@ -295,22 +298,14 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
                 width: double.infinity,
                 height: 50,
                 child: _step == 0
-                    ? ElevatedButton.icon(
-                        onPressed: _submitAnswersAndFinalize,
-                        icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white),
-                        label: const Text(
-                          'Tạo ngân sách cá nhân hóa ngay',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8B5CF6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        ),
-                      )
+                    ? _buildStep0NavigationButtons(isDark)
                     : Row(
                         children: [
                           OutlinedButton.icon(
-                            onPressed: () => setState(() => _step = 0),
+                            onPressed: () => setState(() {
+                              _step = 0;
+                              _currentQuestionIndex = 0;
+                            }),
                             icon: const Icon(Icons.arrow_back_rounded, size: 16),
                             label: const Text('Hỏi lại'),
                             style: OutlinedButton.styleFrom(
@@ -348,17 +343,94 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
     );
   }
 
-  /// Bước 0: Nhận xét tài chính ban đầu và đặt câu hỏi chi tiêu cố định
+  /// Widget điều hướng câu hỏi cho Bước 0 (Tiếp tục / Quay lại / Tạo ngân sách)
+  Widget _buildStep0NavigationButtons(bool isDark) {
+    final questions = _initialAnalysis?.questions ?? [];
+    final total = questions.length;
+    final isLast = total == 0 || _currentQuestionIndex >= total - 1;
+
+    if (_currentQuestionIndex > 0) {
+      return Row(
+        children: [
+          OutlinedButton.icon(
+            onPressed: () => setState(() => _currentQuestionIndex--),
+            icon: const Icon(Icons.arrow_back_rounded, size: 16),
+            label: const Text('Câu trước'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: isLast
+                  ? _submitAnswersAndFinalize
+                  : () => setState(() => _currentQuestionIndex++),
+              icon: Icon(
+                isLast ? Icons.auto_awesome_rounded : Icons.arrow_forward_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+              label: Text(
+                isLast
+                    ? 'Tạo ngân sách cá nhân hóa ngay'
+                    : 'Tiếp tục (Câu ${_currentQuestionIndex + 2}/$total)',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF8B5CF6),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return ElevatedButton.icon(
+      onPressed: isLast
+          ? _submitAnswersAndFinalize
+          : () => setState(() => _currentQuestionIndex++),
+      icon: Icon(
+        isLast ? Icons.auto_awesome_rounded : Icons.arrow_forward_rounded,
+        color: Colors.white,
+        size: 18,
+      ),
+      label: Text(
+        isLast
+            ? 'Tạo ngân sách cá nhân hóa ngay'
+            : 'Tiếp tục (Câu 2/$total)',
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF8B5CF6),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    );
+  }
+
+  /// Bước 0: Nhận xét tài chính ban đầu và đặt câu hỏi chi tiêu cố định TỪNG CÂU MỘT
   Widget _buildStep0Questionnaire(bool isDark) {
     final analysis = _initialAnalysis;
     if (analysis == null) {
       return _buildLoadingState(isDark, 'Đang tải câu hỏi khảo sát...');
     }
 
+    final questions = analysis.questions;
+    if (questions.isEmpty) {
+      return _buildLoadingState(isDark, 'Không có câu hỏi khảo sát.');
+    }
+
+    final safeIndex = _currentQuestionIndex.clamp(0, questions.length - 1);
+    final q = questions[safeIndex];
+    final ctrl = _answerControllers[q.id];
+    final progress = (safeIndex + 1) / questions.length;
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
       children: [
-        // Card nhận xét dòng tiền hiện tại
+        // 1. Card nhận xét dòng tiền hiện tại
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -408,39 +480,72 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
         ),
         const SizedBox(height: 20),
 
-        // Tiêu đề câu hỏi
+        // 2. Thanh tiến trình khảo sát
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Icon(Icons.help_outline_rounded, color: Color(0xFF8B5CF6), size: 18),
-            const SizedBox(width: 8),
-            const Text(
-              'Để tạo ngân sách sát thực tế, AI cần biết thêm:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            Row(
+              children: [
+                const Icon(Icons.help_outline_rounded, color: Color(0xFF8B5CF6), size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'Khảo sát dòng tiền',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+              ],
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFF8B5CF6).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                'Câu ${safeIndex + 1} / ${questions.length}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF8B5CF6),
+                ),
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 6,
+            backgroundColor: isDark ? Colors.white10 : const Color(0xFFEDE9FE),
+            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+          ),
+        ),
+        const SizedBox(height: 16),
 
-        // Danh sách các câu hỏi
-        ...analysis.questions.map((q) {
-          final ctrl = _answerControllers[q.id];
-
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
+        // 3. Card hiển thị DUY NHẤT 1 CÂU HỎI HIỆN TẠI
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: Container(
+            key: ValueKey<String>(q.id),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                color: const Color(0xFF8B5CF6).withOpacity(isDark ? 0.35 : 0.25),
+                width: 1.2,
               ),
               boxShadow: [
-                if (!isDark)
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
+                BoxShadow(
+                  color: const Color(0xFF8B5CF6).withOpacity(isDark ? 0.08 : 0.05),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
             child: Column(
@@ -448,19 +553,25 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
               children: [
                 Text(
                   q.question,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    height: 1.35,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
                 ),
                 if (q.subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 6),
                   Text(
                     q.subtitle,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 12,
+                      height: 1.4,
                       color: isDark ? Colors.white60 : const Color(0xFF64748B),
                     ),
                   ),
                 ],
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
 
                 // TextField nhập số tiền
                 if (ctrl != null)
@@ -468,26 +579,37 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
                     controller: ctrl,
                     keyboardType: TextInputType.number,
                     inputFormatters: [ThousandsSeparatorInputFormatter()],
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     decoration: InputDecoration(
                       suffixText: 'đ',
+                      suffixStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
                   ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 14),
 
                 // Quick options chips
                 if (q.quickOptions.isNotEmpty && ctrl != null) ...[
+                  Text(
+                    'Chọn nhanh:',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
                   Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
+                    spacing: 8,
+                    runSpacing: 8,
                     children: q.quickOptions.map((opt) {
                       final label = opt >= 1000000
                           ? '${(opt / 1000000).toStringAsFixed(opt % 1000000 == 0 ? 0 : 1)} triệu'
                           : '${(opt / 1000).toInt()}k';
                       return ActionChip(
-                        label: Text(label, style: const TextStyle(fontSize: 11)),
+                        label: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                        backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                         onPressed: () {
                           ctrl.text = ThousandsSeparatorInputFormatter.format(opt);
                         },
@@ -497,8 +619,8 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
                 ],
               ],
             ),
-          );
-        }),
+          ),
+        ),
       ],
     );
   }
