@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/currency_input_formatter.dart';
 
 class WalletsScreen extends StatelessWidget {
   const WalletsScreen({super.key});
@@ -65,6 +66,7 @@ class WalletsScreen extends StatelessWidget {
                     TextField(
                       controller: balanceCtrl,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [ThousandsSeparatorInputFormatter()],
                       decoration: const InputDecoration(labelText: 'Số dư ban đầu (VND)', hintText: '0'),
                     ),
                     const SizedBox(height: 20),
@@ -72,7 +74,7 @@ class WalletsScreen extends StatelessWidget {
                       onPressed: () async {
                         final name = nameCtrl.text.trim();
                         if (name.isEmpty) return;
-                        final balance = double.tryParse(balanceCtrl.text.replaceAll(',', '')) ?? 0;
+                        final balance = ThousandsSeparatorInputFormatter.parse(balanceCtrl.text);
                         final bankCode = selectedPackage != null ? AppConstants.bankPackages[selectedPackage] : 'CASH';
 
                         await context.read<WalletProvider>().addWallet(

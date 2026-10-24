@@ -13,6 +13,7 @@ import '../stats/stats_screen.dart';
 import '../categories/categories_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/winner_x_image.dart';
+import '../../core/utils/currency_input_formatter.dart';
 
 import '../../core/widgets/custom_bottom_nav_bar.dart';
 import 'widgets/pending_question_card.dart';
@@ -633,7 +634,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showEditGoalDialog() {
     final titleController = TextEditingController(text: _goalTitle);
     final amountController = TextEditingController(
-      text: _goalTargetAmount.toInt().toString(),
+      text: ThousandsSeparatorInputFormatter.format(_goalTargetAmount),
     );
     final sloganController = TextEditingController(text: _goalSlogan);
 
@@ -707,10 +708,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   TextField(
                     controller: amountController,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [ThousandsSeparatorInputFormatter()],
                     style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                     decoration: const InputDecoration(
                       labelText: 'Số tiền mục tiêu (VNĐ)',
-                      hintText: '50000000',
+                      hintText: '50.000.000',
                       prefixIcon: Icon(Icons.monetization_on_outlined, color: AppTheme.primaryEmerald),
                     ),
                   ),
@@ -809,7 +811,7 @@ class _HomeScreenState extends State<HomeScreen> {
       side: BorderSide(color: Colors.white.withOpacity(0.1)),
       onPressed: () {
         setSheetState(() {
-          controller.text = value.toInt().toString();
+          controller.text = ThousandsSeparatorInputFormatter.format(value);
         });
       },
     );

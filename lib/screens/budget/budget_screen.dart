@@ -7,6 +7,7 @@ import '../../models/category_model.dart';
 import '../../providers/budget_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../core/utils/category_icon_helper.dart';
+import '../../core/utils/currency_input_formatter.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
@@ -30,7 +31,9 @@ class _BudgetScreenState extends State<BudgetScreen> {
     final budgetProvider = context.read<BudgetProvider>();
     final categories = budgetProvider.categories;
     final amountController = TextEditingController(
-      text: existingBudget != null ? existingBudget.amountLimit.toStringAsFixed(0) : '',
+      text: existingBudget != null
+          ? ThousandsSeparatorInputFormatter.format(existingBudget.amountLimit)
+          : '',
     );
     String? selectedCategoryId = existingBudget?.categoryId ?? (categories.isNotEmpty ? categories.first.id : null);
 
@@ -109,9 +112,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   TextField(
                     controller: amountController,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [ThousandsSeparatorInputFormatter()],
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                     decoration: InputDecoration(
-                      hintText: 'Ví dụ: 3000000',
+                      hintText: 'Ví dụ: 3.000.000',
                       prefixIcon: const Icon(Icons.account_balance_wallet_outlined, color: AppTheme.primaryEmerald),
                       filled: true,
                       fillColor: AppTheme.cardDark.withOpacity(0.5),
@@ -127,7 +131,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                         backgroundColor: AppTheme.cardDark.withOpacity(0.4),
                         onPressed: () {
                           setModalState(() {
-                            amountController.text = amt.toString();
+                            amountController.text = ThousandsSeparatorInputFormatter.format(amt);
                           });
                         },
                       );
