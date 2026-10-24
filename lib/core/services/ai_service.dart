@@ -74,15 +74,19 @@ class AiFinancialPlan {
 }
 
 class AiService {
-  /// Xác định URL backend phù hợp (máy ảo Android: 10.0.2.2, máy thật/desktop: localhost / LAN)
-  static String get baseUrl {
+  /// Danh sách các địa chỉ backend tiềm năng (Điện thoại thật qua USB/LAN, Máy ảo Emulator, Web/Desktop)
+  static List<String> get candidateBaseUrls {
     if (kIsWeb) {
-      return 'http://localhost:5000';
+      return ['http://localhost:5000'];
     }
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5000';
+      return [
+        'http://127.0.0.1:5000',   // Điện thoại thật khi cắm cáp USB (đã cấu hình adb reverse)
+        'http://192.168.1.7:5000', // Điện thoại thật qua chung mạng Wi-Fi
+        'http://10.0.2.2:5000',    // Máy ảo Android Emulator
+      ];
     }
-    return 'http://localhost:5000';
+    return ['http://localhost:5000'];
   }
 
   /// Gửi dữ liệu tài chính lên backend để Gemini AI phân tích và lập kế hoạch ngân sách
@@ -109,30 +113,43 @@ class AiService {
       }).toList(),
     };
 
-    final client = HttpClient();
-    client.connectionTimeout = const Duration(seconds: 30);
+    dynamic lastError;
 
-    try {
-      final uri = Uri.parse('$baseUrl/api/ai/financial-plan');
-      final request = await client.postUrl(uri);
-      request.headers.contentType = ContentType.json;
-      request.write(jsonEncode(payload));
+    for (final base in candidateBaseUrls) {
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 5);
 
-      final response = await request.close();
-      final responseBody = await response.transform(utf8.decoder).join();
+      try {
+        final uri = Uri.parse('$base/api/ai/financial-plan');
+        final request = await client.postUrl(uri);
+        request.headers.contentType = ContentType.json;
+        request.write(jsonEncode(payload));
 
-      if (response.statusCode != 200) {
-        throw Exception('Lỗi từ AI Server (${response.statusCode}): $responseBody');
+        final response = await request.close();
+        final responseBody = await response.transform(utf8.decoder).join();
+
+        if (response.statusCode != 200) {
+          throw Exception('Lỗi từ AI Server (${response.statusCode}): $responseBody');
+        }
+
+        final json = jsonDecode(responseBody) as Map<String, dynamic>;
+        if (json['success'] != true || json['data'] == null) {
+          throw Exception(json['error'] ?? 'Không nhận được dữ liệu hợp lệ từ AI');
+        }
+
+        return AiFinancialPlan.fromJson(json['data'] as Map<String, dynamic>);
+      } catch (e) {
+        lastError = e;
+        // Tiếp tục thử URL tiếp theo trong danh sách candidateBaseUrls
+      } finally {
+        client.close();
       }
-
-      final json = jsonDecode(responseBody) as Map<String, dynamic>;
-      if (json['success'] != true || json['data'] == null) {
-        throw Exception(json['error'] ?? 'Không nhận được dữ liệu hợp lệ từ AI');
-      }
-
-      return AiFinancialPlan.fromJson(json['data'] as Map<String, dynamic>);
-    } finally {
-      client.close();
     }
+
+    throw Exception(
+      'Không thể kết nối đến máy chủ Backend (${candidateBaseUrls.join(", ")}).\n'
+      'Chi tiết: $lastError\n'
+      'Vui lòng đảm bảo backend đang chạy tại cổng 5000.',
+    );
   }
 }
