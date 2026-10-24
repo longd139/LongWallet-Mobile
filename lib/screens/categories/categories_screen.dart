@@ -58,20 +58,31 @@ class _CategoriesScreenState extends State<CategoriesScreen>
       return;
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceDark,
+        backgroundColor: isDark ? AppTheme.surfaceDark : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Xác nhận xóa danh mục', style: TextStyle(color: Colors.white)),
+        title: Text(
+          'Xác nhận xóa danh mục',
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         content: Text(
           'Bạn có chắc muốn xóa danh mục "${category.name}" không? Các giao dịch cũ vẫn sẽ được giữ lại.',
-          style: const TextStyle(color: AppTheme.textMuted),
+          style: TextStyle(color: isDark ? AppTheme.textMuted : const Color(0xFF475569)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Hủy', style: TextStyle(color: Colors.white70)),
+            child: Text(
+              'Hủy',
+              style: TextStyle(color: isDark ? Colors.white70 : const Color(0xFF64748B)),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -100,6 +111,8 @@ class _CategoriesScreenState extends State<CategoriesScreen>
   }
 
   Widget _buildCategoryList(List<CategoryModel> list, String emptyMessage) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (list.isEmpty) {
       return Center(
         child: Column(
@@ -108,15 +121,22 @@ class _CategoriesScreenState extends State<CategoriesScreen>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppTheme.cardDark.withOpacity(0.4),
+                color: isDark ? AppTheme.cardDark.withOpacity(0.4) : const Color(0xFFF1F5F9),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.category_outlined, size: 48, color: AppTheme.textMuted),
+              child: Icon(
+                Icons.category_outlined,
+                size: 48,
+                color: isDark ? AppTheme.textMuted : const Color(0xFF94A3B8),
+              ),
             ),
             const SizedBox(height: 16),
             Text(
               emptyMessage,
-              style: const TextStyle(color: AppTheme.textMuted, fontSize: 14),
+              style: TextStyle(
+                color: isDark ? AppTheme.textMuted : const Color(0xFF64748B),
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
@@ -140,9 +160,20 @@ class _CategoriesScreenState extends State<CategoriesScreen>
         return Container(
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
-            color: AppTheme.surfaceDark,
+            color: isDark ? AppTheme.surfaceDark : Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.cardDark.withOpacity(0.6)),
+            border: Border.all(
+              color: isDark ? AppTheme.cardDark.withOpacity(0.6) : const Color(0xFFE2E8F0),
+            ),
+            boxShadow: isDark
+                ? null
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -161,8 +192,8 @@ class _CategoriesScreenState extends State<CategoriesScreen>
                 Flexible(
                   child: Text(
                     cat.name,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
@@ -174,14 +205,14 @@ class _CategoriesScreenState extends State<CategoriesScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.white10,
+                      color: isDark ? Colors.white10 : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Mặc định',
                       style: TextStyle(
                         fontSize: 10,
-                        color: AppTheme.textMuted,
+                        color: isDark ? AppTheme.textMuted : const Color(0xFF64748B),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -197,8 +228,12 @@ class _CategoriesScreenState extends State<CategoriesScreen>
               ),
             ),
             trailing: PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert_rounded, color: AppTheme.textMuted, size: 20),
-              color: AppTheme.surfaceDark,
+              icon: Icon(
+                Icons.more_vert_rounded,
+                color: isDark ? AppTheme.textMuted : const Color(0xFF94A3B8),
+                size: 20,
+              ),
+              color: isDark ? AppTheme.surfaceDark : Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               onSelected: (val) {
                 if (val == 'edit') {
@@ -208,13 +243,22 @@ class _CategoriesScreenState extends State<CategoriesScreen>
                 }
               },
               itemBuilder: (ctx) => [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'edit',
                   child: Row(
                     children: [
-                      Icon(Icons.edit_outlined, size: 18, color: Colors.white70),
-                      SizedBox(width: 8),
-                      Text('Chỉnh sửa', style: TextStyle(color: Colors.white)),
+                      Icon(
+                        Icons.edit_outlined,
+                        size: 18,
+                        color: isDark ? Colors.white70 : const Color(0xFF475569),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Chỉnh sửa',
+                        style: TextStyle(
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -394,6 +438,7 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isEditing = widget.existingCategory != null;
     final currentIcon = CategoryIconHelper.getIcon(_selectedIconKey);
     final currentColor = CategoryIconHelper.hexToColor(_selectedColorHex);
@@ -411,9 +456,9 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
-      decoration: const BoxDecoration(
-        color: AppTheme.surfaceDark,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.surfaceDark : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -426,7 +471,7 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: isDark ? Colors.white24 : const Color(0xFFCBD5E1),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -439,14 +484,14 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
               children: [
                 Text(
                   isEditing ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: AppTheme.textMuted),
+                  icon: Icon(Icons.close, color: isDark ? AppTheme.textMuted : const Color(0xFF64748B)),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -457,9 +502,11 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: AppTheme.cardDark.withOpacity(0.4),
+                color: isDark ? AppTheme.cardDark.withOpacity(0.4) : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: currentColor.withOpacity(0.3)),
+                border: Border.all(
+                  color: isDark ? currentColor.withOpacity(0.3) : const Color(0xFFE2E8F0),
+                ),
               ),
               child: Row(
                 children: [
@@ -482,10 +529,10 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                           _nameController.text.trim().isEmpty
                               ? 'Tên danh mục...'
                               : _nameController.text.trim(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -525,7 +572,7 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: AppTheme.cardDark.withOpacity(0.6),
+                color: isDark ? AppTheme.cardDark.withOpacity(0.6) : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
@@ -557,7 +604,9 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                           'Chi tiêu',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: _selectedType == 'EXPENSE' ? Colors.white : AppTheme.textMuted,
+                            color: _selectedType == 'EXPENSE'
+                                ? Colors.white
+                                : (isDark ? AppTheme.textMuted : const Color(0xFF64748B)),
                           ),
                         ),
                       ),
@@ -590,7 +639,9 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                           'Thu nhập',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: _selectedType == 'INCOME' ? Colors.white : AppTheme.textMuted,
+                            color: _selectedType == 'INCOME'
+                                ? Colors.white
+                                : (isDark ? AppTheme.textMuted : const Color(0xFF64748B)),
                           ),
                         ),
                       ),
@@ -605,7 +656,10 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
             TextField(
               controller: _nameController,
               onChanged: (_) => setState(() {}),
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                fontSize: 16,
+              ),
               decoration: InputDecoration(
                 labelText: 'Tên danh mục',
                 hintText: _selectedType == 'EXPENSE' ? 'Ví dụ: Ăn uống, Cafe, Mua sắm...' : 'Ví dụ: Lương, Thưởng, Bán hàng...',
@@ -615,9 +669,13 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
             const SizedBox(height: 20),
 
             // Color Selector
-            const Text(
+            Text(
               'Chọn màu sắc đại diện:',
-              style: TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: isDark ? AppTheme.textMuted : const Color(0xFF475569),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 10),
             SizedBox(
@@ -641,7 +699,9 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                         color: col,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isSelected ? Colors.white : Colors.transparent,
+                          color: isSelected
+                              ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                              : Colors.transparent,
                           width: 3,
                         ),
                         boxShadow: isSelected
@@ -663,16 +723,22 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
               _selectedType == 'EXPENSE'
                   ? 'Chọn biểu tượng Chi tiêu:'
                   : 'Chọn biểu tượng Thu nhập:',
-              style: const TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: isDark ? AppTheme.textMuted : const Color(0xFF475569),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 10),
             Container(
               height: 220,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppTheme.cardDark.withOpacity(0.3),
+                color: isDark ? AppTheme.cardDark.withOpacity(0.3) : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.cardDark.withOpacity(0.6)),
+                border: Border.all(
+                  color: isDark ? AppTheme.cardDark.withOpacity(0.6) : const Color(0xFFE2E8F0),
+                ),
               ),
               child: GridView.builder(
                 itemCount: currentIcons.length,
@@ -693,10 +759,12 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? currentColor.withOpacity(0.2)
-                            : AppTheme.surfaceDark.withOpacity(0.5),
+                            : (isDark ? AppTheme.surfaceDark.withOpacity(0.5) : Colors.white),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isSelected ? currentColor : Colors.transparent,
+                          color: isSelected
+                              ? currentColor
+                              : (isDark ? Colors.transparent : const Color(0xFFE2E8F0)),
                           width: 1.5,
                         ),
                       ),
@@ -705,7 +773,9 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                         children: [
                           Icon(
                             item.icon,
-                            color: isSelected ? currentColor : Colors.white70,
+                            color: isSelected
+                                ? currentColor
+                                : (isDark ? Colors.white70 : const Color(0xFF64748B)),
                             size: 24,
                           ),
                           const SizedBox(height: 4),
@@ -713,7 +783,9 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                             item.label,
                             style: TextStyle(
                               fontSize: 10,
-                              color: isSelected ? Colors.white : AppTheme.textMuted,
+                              color: isSelected
+                                  ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                                  : (isDark ? AppTheme.textMuted : const Color(0xFF64748B)),
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                             ),
                             maxLines: 1,
