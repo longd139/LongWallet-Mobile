@@ -196,15 +196,18 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      height: size.height * 0.90,
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.surfaceDark : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        children: [
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: Container(
+        height: size.height * 0.90,
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.surfaceDark : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
           // Drag handle
           Center(
             child: Container(
@@ -340,6 +343,7 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
             ),
         ],
       ),
+    ),
     );
   }
 
@@ -424,7 +428,8 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
     final progress = (safeIndex + 1) / questions.length;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
         // 1. Card nhận xét dòng tiền hiện tại
         Container(
@@ -575,6 +580,8 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
                     controller: ctrl,
                     keyboardType: TextInputType.number,
                     inputFormatters: [ThousandsSeparatorInputFormatter()],
+                    scrollPadding: const EdgeInsets.only(bottom: 140),
+                    onTapOutside: (_) => FocusScope.of(context).unfocus(),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                     decoration: InputDecoration(
                       suffixText: 'đ',
