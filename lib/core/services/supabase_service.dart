@@ -3,6 +3,7 @@ import '../../models/wallet_model.dart';
 import '../../models/transaction_model.dart';
 import '../../models/category_model.dart';
 import '../../models/budget_model.dart';
+import '../../models/debt_model.dart';
 
 class SupabaseService {
   SupabaseClient get client => Supabase.instance.client;
@@ -198,5 +199,46 @@ class SupabaseService {
 
   Future<void> deleteBudget(String id) async {
     await client.from('budgets').delete().eq('id', id);
+  }
+
+  // ===================== DEBTS =====================
+  Future<List<DebtModel>> getDebts() async {
+    final response = await client
+        .from('debts')
+        .select()
+        .order('created_at', ascending: false);
+
+    return (response as List).map((e) => DebtModel.fromJson(e)).toList();
+  }
+
+  Future<DebtModel> createDebt({
+    required String personName,
+    required double amount,
+    required String type,
+    DateTime? dueDate,
+    String? note,
+  }) async {
+    final response = await client.from('debts').insert({
+      'user_id': currentUserId,
+      'person_name': personName,
+      'amount': amount,
+      'type': type,
+      'due_date': dueDate?.toIso8601String(),
+      'note': note,
+      'is_settled': false,
+    }).select().single();
+
+    return DebtModel.fromJson(response);
+  }
+
+  Future<void> updateDebtSettled(String id, bool isSettled) async {
+    await client.from('debts').update({
+      'is_settled': isSettled,
+      'updated_at': DateTime.now().toIso8601String(),
+    }).eq('id', id);
+  }
+
+  Future<void> deleteDebt(String id) async {
+    await client.from('debts').delete().eq('id', id);
   }
 }

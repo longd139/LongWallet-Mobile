@@ -10,6 +10,7 @@ import 'providers/transaction_provider.dart';
 import 'providers/budget_provider.dart';
 import 'providers/category_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/debt_provider.dart';
 import 'screens/intro/splash_screen.dart';
 
 void main() async {
@@ -45,6 +46,7 @@ class LongWalletApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => BudgetProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => DebtProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

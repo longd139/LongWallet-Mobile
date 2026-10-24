@@ -11,6 +11,8 @@ import '../wallets/wallets_screen.dart';
 import '../budget/budget_screen.dart';
 import '../stats/stats_screen.dart';
 import '../categories/categories_screen.dart';
+import '../debts/debts_screen.dart';
+import '../../providers/debt_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/currency_input_formatter.dart';
@@ -44,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WalletProvider>().fetchWallets();
       context.read<TransactionProvider>().fetchTransactions();
+      context.read<DebtProvider>().fetchDebts();
       _notificationService.requestPostNotificationPermission();
       _checkNotificationPermission();
     });
@@ -281,12 +284,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final walletProvider = context.watch<WalletProvider>();
     final txProvider = context.watch<TransactionProvider>();
     final authProvider = context.watch<AuthProvider>();
+    final debtProvider = context.watch<DebtProvider>();
 
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: () async {
           await walletProvider.fetchWallets();
           await txProvider.fetchTransactions();
+          await debtProvider.fetchDebts();
         },
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -363,6 +368,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 12),
+
+              // Total Debt Card (Tổng nợ)
+              _buildDebtCard(debtProvider),
               const SizedBox(height: 24),
 
               // Recent Transactions Header
@@ -501,6 +510,136 @@ class _HomeScreenState extends State<HomeScreen> {
       return millions % 1 == 0 ? '${millions.toInt()}tr' : '${millions.toStringAsFixed(1)}tr';
     }
     return currencyFormatter.format(amount);
+  }
+
+  Widget _buildDebtCard(DebtProvider debtProvider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final totalDebt = debtProvider.totalDebt;
+    final totalLoan = debtProvider.totalLoan;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const DebtsScreen()),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E1A22) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFFEF4444).withOpacity(isDark ? 0.35 : 0.22),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFEF4444).withOpacity(isDark ? 0.08 : 0.05),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.receipt_long_rounded,
+                          size: 16,
+                          color: Color(0xFFEF4444),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Tổng nợ (Cần trả)',
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : const Color(0xFF475569),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Sổ nợ',
+                        style: TextStyle(
+                          color: isDark ? AppTheme.textMuted : const Color(0xFF64748B),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: isDark ? AppTheme.textMuted : const Color(0xFF64748B),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    currencyFormatter.format(totalDebt),
+                    style: const TextStyle(
+                      color: Color(0xFFEF4444),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (totalLoan > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryEmerald.withOpacity(isDark ? 0.2 : 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Cho vay: +${currencyFormatter.format(totalLoan)}',
+                        style: const TextStyle(
+                          color: AppTheme.primaryEmerald,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  else if (totalDebt == 0)
+                    Text(
+                      'Không có nợ tồn đọng ✨',
+                      style: TextStyle(
+                        color: isDark ? AppTheme.textMuted : const Color(0xFF94A3B8),
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildGoalCard(double currentBalance) {
