@@ -62,7 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _goalTargetAmount = prefs.getDouble('goal_target') ?? 50000000;
         _goalSlogan = prefs.getString('goal_slogan') ?? 'Cày cuốc gom tiền – Quyết liền Winner X';
       });
-      context.read<WalletProvider>().ensureGoalWallet(title);
     }
   }
 

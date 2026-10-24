@@ -24,12 +24,51 @@ class WalletProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      _wallets = await _supabaseService.getWallets();
+      final fetched = await _supabaseService.getWallets();
+
+      // Dọn dẹp tự động nếu có nhiều hơn 1 ví mục tiêu (GOAL)
+      final goalWallets = fetched.where((w) => w.bankCode == 'GOAL').toList();
+      if (goalWallets.length > 1) {
+        // Ưu tiên giữ ví có số dư > 0 hoặc ví đầu tiên
+        goalWallets.sort((a, b) {
+          if (a.currentBalance > 0 && b.currentBalance == 0) return -1;
+          if (b.currentBalance > 0 && a.currentBalance == 0) return 1;
+          return a.id.compareTo(b.id);
+        });
+
+        final keepGoal = goalWallets.first;
+        final duplicates = goalWallets.sublist(1);
+
+        // Xóa bất đồng bộ các ví mục tiêu thừa trong Supabase
+        for (final dup in duplicates) {
+          try {
+            await _supabaseService.deleteWallet(dup.id);
+          } catch (err) {
+            debugPrint('Lỗi dọn dẹp ví mục tiêu thừa: $err');
+          }
+        }
+
+        final duplicateIds = duplicates.map((w) => w.id).toSet();
+        _wallets = fetched.where((w) => !duplicateIds.contains(w.id)).toList();
+      } else {
+        _wallets = fetched;
+      }
     } catch (e) {
-      print('Error fetching wallets: $e');
+      debugPrint('Error fetching wallets: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> deleteWallet(String walletId) async {
+    try {
+      await _supabaseService.deleteWallet(walletId);
+      _wallets.removeWhere((w) => w.id == walletId);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error deleting wallet: $e');
+      rethrow;
     }
   }
 
@@ -38,6 +77,16 @@ class WalletProvider extends ChangeNotifier {
     if (existing != null) {
       return existing;
     }
+
+    // Nếu _wallets rỗng (chưa tải xong), tải từ database trước để tránh tạo trùng
+    if (_wallets.isEmpty) {
+      await fetchWallets();
+      final afterFetch = goalWallet;
+      if (afterFetch != null) {
+        return afterFetch;
+      }
+    }
+
     final newWallet = await _supabaseService.createWallet(
       name: 'Mục tiêu: $goalTitle',
       bankCode: 'GOAL',

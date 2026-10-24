@@ -76,5 +76,26 @@ void main() {
       final overProgress = (60000000.0 / targetAmount).clamp(0.0, 1.0);
       expect(overProgress, 1.0);
     });
+
+    test('deduplicate goal wallets keeps only one wallet and detects duplicates', () {
+      final dup1 = WalletModel(id: 'g-1', userId: 'u1', name: 'Mục tiêu', bankCode: 'GOAL', currentBalance: 0, icon: 'flag', color: '#EF4444');
+      final dup2 = WalletModel(id: 'g-2', userId: 'u1', name: 'Mục tiêu', bankCode: 'GOAL', currentBalance: 500000, icon: 'flag', color: '#EF4444');
+      final dup3 = WalletModel(id: 'g-3', userId: 'u1', name: 'Mục tiêu', bankCode: 'GOAL', currentBalance: 0, icon: 'flag', color: '#EF4444');
+      final dup4 = WalletModel(id: 'g-4', userId: 'u1', name: 'Mục tiêu', bankCode: 'GOAL', currentBalance: 0, icon: 'flag', color: '#EF4444');
+
+      final goalList = [dup1, dup2, dup3, dup4];
+      goalList.sort((a, b) {
+        if (a.currentBalance > 0 && b.currentBalance == 0) return -1;
+        if (b.currentBalance > 0 && a.currentBalance == 0) return 1;
+        return a.id.compareTo(b.id);
+      });
+
+      final keep = goalList.first;
+      final toDelete = goalList.sublist(1);
+
+      expect(keep.id, 'g-2'); // Ví có số dư > 0 được giữ lại
+      expect(toDelete.length, 3); // 3 ví thừa bị loại bỏ
+      expect(toDelete.map((w) => w.id), containsAll(['g-1', 'g-3', 'g-4']));
+    });
   });
 }

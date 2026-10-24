@@ -44,6 +44,10 @@ class SupabaseService {
     return WalletModel.fromJson(response);
   }
 
+  Future<void> deleteWallet(String walletId) async {
+    await client.from('wallets').delete().eq('id', walletId);
+  }
+
   // ===================== TRANSACTIONS =====================
   Future<List<TransactionModel>> getTransactions({int limit = 50}) async {
     final response = await client
