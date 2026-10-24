@@ -683,6 +683,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setSheetState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
           return Container(
             padding: EdgeInsets.only(
               top: 20,
@@ -690,9 +691,9 @@ class _HomeScreenState extends State<HomeScreen> {
               right: 20,
               bottom: MediaQuery.of(context).viewInsets.bottom + 24,
             ),
-            decoration: const BoxDecoration(
-              color: AppTheme.surfaceDark,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.surfaceDark : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: SingleChildScrollView(
               child: Column(
@@ -704,7 +705,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.white24,
+                        color: isDark ? Colors.white24 : const Color(0xFFCBD5E1),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -713,22 +714,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.flag_rounded, color: Color(0xFFEF4444)),
-                          SizedBox(width: 8),
+                          const Icon(Icons.flag_rounded, color: Color(0xFFEF4444)),
+                          const SizedBox(width: 8),
                           Text(
                             'Chỉnh sửa mục tiêu tài chính',
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
                             ),
                           ),
                         ],
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: AppTheme.textMuted),
+                        icon: Icon(
+                          Icons.close,
+                          color: isDark ? AppTheme.textMuted : const Color(0xFF64748B),
+                        ),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
@@ -736,7 +740,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: titleController,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
                     decoration: const InputDecoration(
                       labelText: 'Tên mục tiêu',
                       hintText: 'Ví dụ: Honda Winner X V4',
@@ -748,7 +752,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     controller: amountController,
                     keyboardType: TextInputType.number,
                     inputFormatters: [ThousandsSeparatorInputFormatter()],
-                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                     decoration: const InputDecoration(
                       labelText: 'Số tiền mục tiêu (VNĐ)',
                       hintText: '50.000.000',
@@ -761,21 +769,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     spacing: 8,
                     runSpacing: 4,
                     children: [
-                      _buildQuickAmountChip('30 triệu', 30000000, amountController, setSheetState),
-                      _buildQuickAmountChip('45 triệu', 45000000, amountController, setSheetState),
-                      _buildQuickAmountChip('50 triệu', 50000000, amountController, setSheetState),
-                      _buildQuickAmountChip('60 triệu', 60000000, amountController, setSheetState),
-                      _buildQuickAmountChip('80 triệu', 80000000, amountController, setSheetState),
+                      _buildQuickAmountChip('30 triệu', 30000000, amountController, setSheetState, isDark),
+                      _buildQuickAmountChip('45 triệu', 45000000, amountController, setSheetState, isDark),
+                      _buildQuickAmountChip('50 triệu', 50000000, amountController, setSheetState, isDark),
+                      _buildQuickAmountChip('60 triệu', 60000000, amountController, setSheetState, isDark),
+                      _buildQuickAmountChip('80 triệu', 80000000, amountController, setSheetState, isDark),
                     ],
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: sloganController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                    decoration: InputDecoration(
                       labelText: 'Khẩu hiệu động lực',
                       hintText: 'Ví dụ: Cày cuốc gom tiền – Quyết liền Winner X',
-                      prefixIcon: Icon(Icons.format_quote_rounded, color: AppTheme.textMuted),
+                      prefixIcon: Icon(
+                        Icons.format_quote_rounded,
+                        color: isDark ? AppTheme.textMuted : const Color(0xFF94A3B8),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -843,11 +854,23 @@ class _HomeScreenState extends State<HomeScreen> {
     double value,
     TextEditingController controller,
     StateSetter setSheetState,
+    bool isDark,
   ) {
     return ActionChip(
-      label: Text(label, style: const TextStyle(fontSize: 11, color: Colors.white70)),
-      backgroundColor: AppTheme.cardDark.withOpacity(0.6),
-      side: BorderSide(color: Colors.white.withOpacity(0.1)),
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          color: isDark ? Colors.white70 : const Color(0xFF334155),
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      backgroundColor: isDark
+          ? AppTheme.cardDark.withOpacity(0.6)
+          : const Color(0xFFF1F5F9),
+      side: BorderSide(
+        color: isDark ? Colors.white.withOpacity(0.1) : const Color(0xFFCBD5E1),
+      ),
       onPressed: () {
         setSheetState(() {
           controller.text = ThousandsSeparatorInputFormatter.format(value);
