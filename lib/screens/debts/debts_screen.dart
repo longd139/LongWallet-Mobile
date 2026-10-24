@@ -976,7 +976,7 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                 TextField(
                   controller: payCtrl,
                   keyboardType: TextInputType.number,
-                  inputFormatters: [CurrencyTextInputFormatter()],
+                  inputFormatters: [ThousandsSeparatorInputFormatter()],
                   decoration: InputDecoration(
                     hintText: 'Nhập số tiền...',
                     suffixText: 'đ',
