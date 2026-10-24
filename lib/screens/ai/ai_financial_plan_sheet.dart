@@ -151,12 +151,22 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
     super.dispose();
   }
 
+  /// Lấy hoặc tự động khởi tạo controller an toàn (kể cả sau Hot Reload)
+  TextEditingController _getFixedController(FixedExpenseItemDef def) {
+    return _fixedControllers.putIfAbsent(
+      def.key,
+      () => TextEditingController(
+        text: ThousandsSeparatorInputFormatter.format(def.defaultValue),
+      ),
+    );
+  }
+
   /// Tự động tính tổng chi phí cố định từ các khoản người dùng đã chọn
   double _calculateTotalFixed() {
     double total = 0.0;
-    for (final key in _selectedFixedKeys) {
-      final ctrl = _fixedControllers[key];
-      if (ctrl != null) {
+    for (final def in _fixedExpenseDefs) {
+      if (_selectedFixedKeys.contains(def.key)) {
+        final ctrl = _getFixedController(def);
         total += ThousandsSeparatorInputFormatter.parse(ctrl.text);
       }
     }
@@ -1026,7 +1036,7 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
 
             // Từng khoản đã chọn với TextField và chip chọn nhanh
             ...selectedDefs.map((def) {
-              final ctrl = _fixedControllers[def.key]!;
+              final ctrl = _getFixedController(def);
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 14),
