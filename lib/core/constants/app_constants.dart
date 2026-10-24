@@ -5,6 +5,9 @@ class AppConstants {
   static const String supabaseUrl = 'https://rdqagqspiwnsrzexuzcq.supabase.co';
   static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkcWFncXNwaXduc3J6ZXh1emNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1OTk4OTcsImV4cCI6MjEwODE3NTg5N30.fKtXYltoOpGA4iu9IJ5xqkHwfAEcblIIs54lQL69A-U';
 
+  // Backend API Service (Render Cloud)
+  static const String backendUrl = 'https://longwallet-backend.onrender.com';
+
   // Bank Mapping Codes
   static const Map<String, String> bankPackages = {
     'com.VCB': 'Vietcombank',

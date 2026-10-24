@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../../models/category_model.dart';
 import '../../models/debt_model.dart';
+import '../constants/app_constants.dart';
 
 class AiQuestion {
   final String id;
@@ -124,19 +125,18 @@ class AiFinancialPlan {
 }
 
 class AiService {
-  /// Danh sách các địa chỉ backend tiềm năng (Điện thoại thật USB adb reverse, Wi-Fi LAN, Emulator)
+  /// Danh sách các địa chỉ backend tiềm năng (Ưu tiên Production Render Cloud, dự phòng localhost/LAN)
   static List<String> get candidateBaseUrls {
-    if (kIsWeb) {
-      return ['http://localhost:5000'];
-    }
-    if (Platform.isAndroid) {
-      return [
+    return [
+      AppConstants.backendUrl,
+      if (kIsWeb) 'http://localhost:5000',
+      if (!kIsWeb && Platform.isAndroid) ...[
         'http://127.0.0.1:5000',   // Điện thoại thật khi cắm cáp USB (đã cấu hình adb reverse)
-        'http://192.168.1.7:5000', // Điện thoại thật qua Wi-Fi LAN
         'http://10.0.2.2:5000',    // Máy ảo Android Emulator
-      ];
-    }
-    return ['http://localhost:5000'];
+        'http://192.168.1.7:5000', // Điện thoại thật qua Wi-Fi LAN
+      ],
+      if (!kIsWeb && !Platform.isAndroid) 'http://localhost:5000',
+    ];
   }
 
   Future<dynamic> _postToBackend(String path, Map<String, dynamic> payload) async {
@@ -144,7 +144,10 @@ class AiService {
 
     for (final base in candidateBaseUrls) {
       final client = HttpClient();
-      client.connectionTimeout = const Duration(seconds: 5);
+      // Render Cloud có thể cần ~25-30 giây để đánh thức (wake up / cold start) nếu đang ngủ
+      client.connectionTimeout = base.startsWith('https://')
+          ? const Duration(seconds: 35)
+          : const Duration(seconds: 5);
 
       try {
         final uri = Uri.parse('$base$path');
@@ -173,9 +176,9 @@ class AiService {
     }
 
     throw Exception(
-      'Không thể kết nối đến máy chủ Backend (${candidateBaseUrls.join(", ")}).\n'
+      'Không thể kết nối đến máy chủ Backend (${AppConstants.backendUrl}).\n'
       'Chi tiết: $lastError\n'
-      'Vui lòng đảm bảo backend đang chạy tại cổng 5000.',
+      'Vui lòng kiểm tra kết nối mạng hoặc thử lại sau giây lát.',
     );
   }
 
