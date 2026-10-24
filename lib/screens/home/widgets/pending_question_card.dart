@@ -6,13 +6,13 @@ import '../../../core/theme/app_theme.dart';
 class PendingQuestionCard extends StatefulWidget {
   final TransactionModel transaction;
   final Function(String note) onConfirm;
-  final VoidCallback onReject;
+  final VoidCallback? onReject;
 
   const PendingQuestionCard({
     super.key,
     required this.transaction,
     required this.onConfirm,
-    required this.onReject,
+    this.onReject,
   });
 
   @override
@@ -255,19 +255,10 @@ class _PendingQuestionCardState extends State<PendingQuestionCard> {
 
                 const SizedBox(height: 14),
 
-                // Action buttons
+                // Action buttons (Chỉ cho phép Xác nhận, không cho phép bỏ qua)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
-                      onPressed: widget.onReject,
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.textMuted,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      child: const Text('Bỏ qua'),
-                    ),
-                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: () {
                         final note = _noteController.text.trim().isNotEmpty
