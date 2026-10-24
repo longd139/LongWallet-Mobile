@@ -676,7 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
             totalBalance: walletProvider.totalBalance,
             goal: {
-              'name': _goalName,
+              'name': _goalTitle,
               'targetAmount': _goalTargetAmount,
               'currentBalance': walletProvider.goalWallet?.currentBalance ?? 0.0,
             },
