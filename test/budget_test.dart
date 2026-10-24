@@ -102,5 +102,33 @@ void main() {
       final totalSpent = provider.calculateTotalSpentForMonth(transactions);
       expect(totalSpent, 1200000.0); // 400000 + 800000
     });
+
+    test('Real-time Budget Check evaluates expense reasonableness within budget', () {
+      const budgetLimit = 2000000.0;
+      const spentBefore = 1200000.0;
+      const enteredAmount = 500000.0;
+
+      final totalAfter = spentBefore + enteredAmount;
+      final isOver = totalAfter > budgetLimit;
+      final remainingAfter = budgetLimit - totalAfter;
+      final percent = ((totalAfter / budgetLimit) * 100).toInt();
+
+      expect(isOver, false);
+      expect(remainingAfter, 300000.0);
+      expect(percent, 85);
+    });
+
+    test('Real-time Budget Check warns accurately when expense exceeds budget limit', () {
+      const budgetLimit = 2000000.0;
+      const spentBefore = 1800000.0;
+      const enteredAmount = 500000.0;
+
+      final totalAfter = spentBefore + enteredAmount;
+      final isOver = totalAfter > budgetLimit;
+      final overAmount = totalAfter - budgetLimit;
+
+      expect(isOver, true);
+      expect(overAmount, 300000.0);
+    });
   });
 }

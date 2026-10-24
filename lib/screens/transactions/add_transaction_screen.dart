@@ -4,8 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/wallet_provider.dart';
 import '../../providers/transaction_provider.dart';
+import '../../providers/category_provider.dart';
+import '../../providers/budget_provider.dart';
+import '../../models/budget_model.dart';
+import '../../models/category_model.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/currency_input_formatter.dart';
+import '../../core/utils/category_icon_helper.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -19,6 +24,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final _noteController = TextEditingController();
   String _selectedType = 'EXPENSE'; // 'EXPENSE', 'INCOME', 'GOAL'
   String? _selectedWalletId;
+  String? _selectedCategoryId;
   String _goalTitle = 'Honda Winner X V4';
   bool _isSubmitting = false;
 
@@ -26,6 +32,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   void initState() {
     super.initState();
     _loadGoalInfo();
+
     final standardWallets = context.read<WalletProvider>().standardWallets;
     if (standardWallets.isNotEmpty) {
       _selectedWalletId = standardWallets.first.id;
@@ -34,6 +41,39 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       if (wallets.isNotEmpty) {
         _selectedWalletId = wallets.first.id;
       }
+    }
+
+    _amountController.addListener(() {
+      if (mounted) setState(() {});
+    });
+
+    // Nạp dữ liệu danh mục & ngân sách để kiểm tra chi tiêu
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final catProvider = context.read<CategoryProvider>();
+      if (catProvider.categories.isEmpty) {
+        await catProvider.fetchCategories();
+      }
+      final budgetProvider = context.read<BudgetProvider>();
+      if (budgetProvider.budgets.isEmpty) {
+        await budgetProvider.fetchBudgets();
+      }
+      if (mounted) {
+        _autoSelectFirstCategory();
+      }
+    });
+  }
+
+  void _autoSelectFirstCategory() {
+    final catProvider = context.read<CategoryProvider>();
+    final available = _selectedType == 'EXPENSE'
+        ? catProvider.expenseCategories
+        : catProvider.incomeCategories;
+    if (available.isNotEmpty) {
+      if (_selectedCategoryId == null || !available.any((c) => c.id == _selectedCategoryId)) {
+        setState(() => _selectedCategoryId = available.first.id);
+      }
+    } else {
+      setState(() => _selectedCategoryId = null);
     }
   }
 
@@ -56,6 +96,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     super.dispose();
   }
 
+  BudgetModel? _findBudgetForCategory(List<BudgetModel> budgets, String? categoryId) {
+    if (categoryId == null) return null;
+    for (final b in budgets) {
+      if (b.categoryId == categoryId) return b;
+    }
+    return null;
+  }
+
   void _saveTransaction() async {
     if (_isSubmitting) return;
 
@@ -72,6 +120,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     if (_selectedWalletId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng chọn ví')),
+      );
+      return;
+    }
+
+    if (_selectedType != 'GOAL' && _selectedCategoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn danh mục cho giao dịch')),
       );
       return;
     }
@@ -101,14 +156,19 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         );
         await txProvider.fetchTransactions();
       } else {
-        // Chi tiêu hoặc Thu nhập thông thường
+        // Chi tiêu hoặc Thu nhập thông thường kèm Danh mục
         await txProvider.addTransaction(
           walletId: _selectedWalletId!,
+          categoryId: _selectedCategoryId,
           amount: amount,
           type: _selectedType,
           note: _noteController.text.trim().isNotEmpty ? _noteController.text.trim() : null,
         );
         await walletProvider.fetchWallets();
+        // Cập nhật lại số liệu chi tiêu ngân sách
+        if (mounted) {
+          context.read<BudgetProvider>().fetchBudgets();
+        }
       }
 
       if (mounted) {
@@ -133,9 +193,162 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     }
   }
 
+  /// Card kiểm tra độ hợp lý của chi tiêu so với hạn mức ngân sách tháng này
+  Widget _buildBudgetCheckCard({
+    required BudgetProvider budgetProvider,
+    required TransactionProvider txProvider,
+    required CategoryProvider catProvider,
+    required bool isDark,
+    required NumberFormat currencyFormatter,
+  }) {
+    if (_selectedType != 'EXPENSE' || _selectedCategoryId == null) {
+      return const SizedBox.shrink();
+    }
+
+    final budget = _findBudgetForCategory(budgetProvider.budgets, _selectedCategoryId);
+    final selectedCat = catProvider.categories.where((c) => c.id == _selectedCategoryId).firstOrNull;
+    final catName = selectedCat?.name ?? 'Danh mục này';
+
+    if (budget == null) {
+      return Container(
+        margin: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDark ? Colors.white12 : const Color(0xFFCBD5E1),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.info_outline_rounded, size: 18, color: Color(0xFF64748B)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Chưa cài hạn mức ngân sách tháng này cho "$catName".',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white70 : const Color(0xFF475569),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final spentBefore = budgetProvider.calculateSpentForCategory(_selectedCategoryId!, txProvider.transactions);
+    final enteredAmount = ThousandsSeparatorInputFormatter.parse(_amountController.text);
+    final limit = budget.amountLimit;
+    final totalAfter = spentBefore + enteredAmount;
+    final isOver = totalAfter > limit;
+    final remainingAfter = limit - totalAfter;
+    final progress = limit > 0 ? (totalAfter / limit).clamp(0.0, 1.0) : 1.0;
+    final percent = limit > 0 ? ((totalAfter / limit) * 100).toInt() : 100;
+
+    final cardBg = isOver
+        ? (isDark ? const Color(0xFF450A0A).withOpacity(0.4) : const Color(0xFFFEF2F2))
+        : (isDark ? const Color(0xFF064E3B).withOpacity(0.35) : const Color(0xFFF0FDF4));
+    final borderColor = isOver ? const Color(0xFFEF4444) : AppTheme.primaryEmerald;
+    final textColor = isOver ? const Color(0xFFEF4444) : AppTheme.primaryEmerald;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor.withOpacity(0.5), width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isOver ? Icons.warning_amber_rounded : Icons.verified_rounded,
+                color: textColor,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isOver ? 'Cảnh báo: Vượt ngân sách tháng! ⚠️' : 'Chi tiêu hợp lý trong ngân sách ✅',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: textColor,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: textColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '$percent%',
+                  style: TextStyle(
+                    color: textColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Thanh tiến độ ngân sách
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isOver ? const Color(0xFFEF4444) : (percent >= 80 ? const Color(0xFFF59E0B) : AppTheme.primaryEmerald),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Đã chi: ${currencyFormatter.format(spentBefore)} / ${currencyFormatter.format(limit)}',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                ),
+              ),
+              Text(
+                isOver
+                    ? 'Vượt hạn mức: +${currencyFormatter.format(-remainingAfter)}'
+                    : 'Sau khi chi còn dư: ${currencyFormatter.format(remainingAfter)}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final walletProvider = context.watch<WalletProvider>();
+    final catProvider = context.watch<CategoryProvider>();
+    final budgetProvider = context.watch<BudgetProvider>();
+    final txProvider = context.watch<TransactionProvider>();
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
@@ -149,6 +362,18 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         availableWallets.isNotEmpty &&
         !availableWallets.any((w) => w.id == _selectedWalletId)) {
       _selectedWalletId = availableWallets.first.id;
+    }
+
+    // Danh sách danh mục theo loại tab hiện tại
+    final availableCategories = _selectedType == 'EXPENSE'
+        ? catProvider.expenseCategories
+        : catProvider.incomeCategories;
+
+    // Tự động kiểm tra selectedCategoryId hợp lệ trong tab đang chọn
+    if (_selectedCategoryId != null &&
+        availableCategories.isNotEmpty &&
+        !availableCategories.any((c) => c.id == _selectedCategoryId)) {
+      _selectedCategoryId = availableCategories.first.id;
     }
 
     final goalWallet = walletProvider.goalWallet;
@@ -175,7 +400,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 3-way Type Selector: Chi tiêu / Thu nhập / Vào mục tiêu
+            // 1. 3-way Type Selector: Chi tiêu / Thu nhập / Vào mục tiêu
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -217,7 +442,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Amount Input
+            // 2. Amount Input
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
@@ -240,7 +465,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Wallet Selector
+            // 3. Wallet Selector
             if (availableWallets.isNotEmpty)
               DropdownButtonFormField<String>(
                 value: _selectedWalletId,
@@ -256,6 +481,56 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 }).toList(),
                 onChanged: (val) => setState(() => _selectedWalletId = val),
               ),
+
+            // 4. Category Selector (Chỉ hiện khi Chi tiêu hoặc Thu nhập)
+            if (_selectedType != 'GOAL') ...[
+              const SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                value: _selectedCategoryId,
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText: _selectedType == 'EXPENSE' ? 'Danh mục chi tiêu' : 'Danh mục thu nhập',
+                  prefixIcon: const Icon(Icons.category_outlined),
+                ),
+                hint: const Text('Chọn danh mục'),
+                items: availableCategories.map((c) {
+                  final color = CategoryIconHelper.hexToColor(c.color);
+                  final icon = CategoryIconHelper.getIcon(c.icon);
+                  return DropdownMenuItem<String>(
+                    value: c.id,
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: color.withOpacity(0.18),
+                          child: Icon(icon, size: 14, color: color),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            c.name,
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  setState(() => _selectedCategoryId = val);
+                },
+              ),
+
+              // Thẻ kiểm tra và đánh giá ngân sách thời gian thực
+              _buildBudgetCheckCard(
+                budgetProvider: budgetProvider,
+                txProvider: txProvider,
+                catProvider: catProvider,
+                isDark: isDark,
+                currencyFormatter: currencyFormatter,
+              ),
+            ],
 
             // Goal Destination Info Card (chỉ hiện khi chọn tab Mục tiêu)
             if (_selectedType == 'GOAL') ...[
@@ -377,6 +652,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               if (stdWallets.isNotEmpty) {
                 _selectedWalletId = stdWallets.first.id;
               }
+            } else {
+              _autoSelectFirstCategory();
             }
           });
         },
