@@ -94,8 +94,9 @@ class CustomBottomNavBar extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _AnimatedNavItem extends StatefulWidget {
