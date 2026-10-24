@@ -274,7 +274,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  isOver ? 'Cảnh báo: Vượt ngân sách tháng! ⚠️' : 'Chi tiêu hợp lý trong ngân sách ✅',
+                  isOver ? 'Cảnh báo: Vượt ngân sách tháng' : 'Chi tiêu hợp lý trong ngân sách',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
@@ -388,7 +388,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       prefixSign = '+ ₫ ';
     } else {
       themeColor = const Color(0xFFEF4444);
-      prefixSign = '🎯 ₫ ';
+      prefixSign = '₫ ';
     }
 
     return Scaffold(
