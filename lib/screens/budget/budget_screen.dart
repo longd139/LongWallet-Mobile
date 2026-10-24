@@ -40,11 +40,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppTheme.surfaceDark,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return StatefulBuilder(
           builder: (modalContext, setModalState) {
             return Padding(
@@ -63,7 +64,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppTheme.cardDark,
+                        color: isDark ? AppTheme.cardDark : const Color(0xFFCBD5E1),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -71,10 +72,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   const SizedBox(height: 16),
                   Text(
                     existingBudget == null ? 'Thiết lập hạn mức chi tiêu' : 'Cập nhật hạn mức chi tiêu',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -82,10 +83,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: selectedCategoryId,
-                    dropdownColor: AppTheme.surfaceDark,
+                    dropdownColor: isDark ? AppTheme.surfaceDark : Colors.white,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: AppTheme.cardDark.withOpacity(0.5),
+                      fillColor: isDark ? AppTheme.cardDark.withOpacity(0.5) : const Color(0xFFF8FAFC),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
                     items: categories.map((cat) {
@@ -97,7 +98,12 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           children: [
                             Icon(catIcon, size: 18, color: catColor),
                             const SizedBox(width: 8),
-                            Text(cat.name, style: const TextStyle(color: Colors.white)),
+                            Text(
+                              cat.name,
+                              style: TextStyle(
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              ),
+                            ),
                           ],
                         ),
                       );
@@ -113,12 +119,16 @@ class _BudgetScreenState extends State<BudgetScreen> {
                     controller: amountController,
                     keyboardType: TextInputType.number,
                     inputFormatters: [ThousandsSeparatorInputFormatter()],
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Ví dụ: 3.000.000',
                       prefixIcon: const Icon(Icons.account_balance_wallet_outlined, color: AppTheme.primaryEmerald),
                       filled: true,
-                      fillColor: AppTheme.cardDark.withOpacity(0.5),
+                      fillColor: isDark ? AppTheme.cardDark.withOpacity(0.5) : const Color(0xFFF8FAFC),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -128,7 +138,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                     children: [500000, 1000000, 2000000, 5000000].map((amt) {
                       return ActionChip(
                         label: Text(_currencyFormat.format(amt), style: const TextStyle(fontSize: 11)),
-                        backgroundColor: AppTheme.cardDark.withOpacity(0.4),
+                        backgroundColor: isDark ? AppTheme.cardDark.withOpacity(0.4) : const Color(0xFFF1F5F9),
                         onPressed: () {
                           setModalState(() {
                             amountController.text = ThousandsSeparatorInputFormatter.format(amt);
@@ -224,12 +234,14 @@ class _BudgetScreenState extends State<BudgetScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Hạn mức theo danh mục',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : const Color(0xFF0F172A),
                     ),
                   ),
                   TextButton.icon(
@@ -269,18 +281,32 @@ class _BudgetScreenState extends State<BudgetScreen> {
   }
 
   Widget _buildMonthSelector(BudgetProvider provider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: isDark ? AppTheme.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.cardDark.withOpacity(0.6)),
+        border: Border.all(
+          color: isDark ? AppTheme.cardDark.withOpacity(0.6) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left_rounded, color: Colors.white70),
+            icon: Icon(
+              Icons.chevron_left_rounded,
+              color: isDark ? Colors.white70 : const Color(0xFF64748B),
+            ),
             onPressed: () => provider.changeMonth(-1),
           ),
           Row(
@@ -289,16 +315,19 @@ class _BudgetScreenState extends State<BudgetScreen> {
               const SizedBox(width: 8),
               Text(
                 provider.displayMonthYear,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                 ),
               ),
             ],
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+            icon: Icon(
+              Icons.chevron_right_rounded,
+              color: isDark ? Colors.white70 : const Color(0xFF64748B),
+            ),
             onPressed: () => provider.changeMonth(1),
           ),
         ],
@@ -312,6 +341,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     double remaining,
     double progress,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isOverBudget = totalBudget > 0 && totalSpent > totalBudget;
     final progressColor = isOverBudget
         ? AppTheme.expenseRed
@@ -324,20 +354,27 @@ class _BudgetScreenState extends State<BudgetScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFF1E293B),
-            isOverBudget
-                ? const Color(0xFF450A0A)
-                : const Color(0xFF064E3B).withOpacity(0.6),
-          ],
+          colors: isDark
+              ? [
+                  const Color(0xFF1E293B),
+                  isOverBudget
+                      ? const Color(0xFF450A0A)
+                      : const Color(0xFF064E3B).withOpacity(0.6),
+                ]
+              : [
+                  Colors.white,
+                  isOverBudget
+                      ? const Color(0xFFFEF2F2)
+                      : const Color(0xFFECFDF5),
+                ],
         ),
         border: Border.all(
-          color: progressColor.withOpacity(0.4),
+          color: progressColor.withOpacity(isDark ? 0.4 : 0.3),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: progressColor.withOpacity(0.12),
+            color: progressColor.withOpacity(isDark ? 0.12 : 0.08),
             blurRadius: 20,
             spreadRadius: 2,
             offset: const Offset(0, 6),
@@ -350,14 +387,17 @@ class _BudgetScreenState extends State<BudgetScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Tổng hạn mức ngân sách',
-                style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                style: TextStyle(
+                  color: isDark ? AppTheme.textMuted : const Color(0xFF64748B),
+                  fontSize: 13,
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: progressColor.withOpacity(0.2),
+                  color: progressColor.withOpacity(isDark ? 0.2 : 0.12),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: progressColor.withOpacity(0.4)),
                 ),
@@ -375,10 +415,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
           const SizedBox(height: 8),
           Text(
             _currencyFormat.format(totalBudget),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
               letterSpacing: 0.5,
             ),
           ),
@@ -389,7 +429,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: AppTheme.cardDark,
+              backgroundColor: isDark ? AppTheme.cardDark : const Color(0xFFE2E8F0),
               valueColor: AlwaysStoppedAnimation<Color>(progressColor),
             ),
           ),
@@ -401,27 +441,40 @@ class _BudgetScreenState extends State<BudgetScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Đã chi tiêu', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                    Text(
+                      'Đã chi tiêu',
+                      style: TextStyle(
+                        color: isDark ? AppTheme.textMuted : const Color(0xFF64748B),
+                        fontSize: 12,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       _currencyFormat.format(totalSpent),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
                       ),
                     ),
                   ],
                 ),
               ),
-              Container(width: 1, height: 32, color: AppTheme.cardDark),
+              Container(
+                width: 1,
+                height: 32,
+                color: isDark ? AppTheme.cardDark : const Color(0xFFE2E8F0),
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       remaining >= 0 ? 'Còn lại' : 'Vượt quá',
-                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                      style: TextStyle(
+                        color: isDark ? AppTheme.textMuted : const Color(0xFF64748B),
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -448,6 +501,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
     double spent,
     BudgetProvider provider,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final limit = budget.amountLimit;
     final ratio = limit > 0 ? (spent / limit) : 0.0;
     final progress = ratio.clamp(0.0, 1.0);
@@ -470,11 +524,21 @@ class _BudgetScreenState extends State<BudgetScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: isDark ? AppTheme.surfaceDark : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isExceeded ? AppTheme.expenseRed.withOpacity(0.5) : AppTheme.cardDark.withOpacity(0.5),
+          color: isExceeded
+              ? AppTheme.expenseRed.withOpacity(0.5)
+              : (isDark ? AppTheme.cardDark.withOpacity(0.5) : const Color(0xFFE2E8F0)),
         ),
+        boxShadow: [
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -510,10 +574,10 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   children: [
                     Text(
                       category?.name ?? 'Danh mục',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -530,7 +594,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
               ),
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert_rounded, color: AppTheme.textMuted, size: 20),
-                color: AppTheme.surfaceDark,
+                color: isDark ? AppTheme.surfaceDark : Colors.white,
                 onSelected: (val) {
                   if (val == 'edit') {
                     _showSetBudgetBottomSheet(budget);
@@ -539,13 +603,22 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   }
                 },
                 itemBuilder: (ctx) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
                     child: Row(
                       children: [
-                        Icon(Icons.edit_outlined, size: 18, color: Colors.white70),
-                        SizedBox(width: 8),
-                        Text('Chỉnh sửa', style: TextStyle(color: Colors.white)),
+                        Icon(
+                          Icons.edit_outlined,
+                          size: 18,
+                          color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Chỉnh sửa',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -569,7 +642,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 6,
-              backgroundColor: AppTheme.cardDark,
+              backgroundColor: isDark ? AppTheme.cardDark : const Color(0xFFE2E8F0),
               valueColor: AlwaysStoppedAnimation<Color>(statusColor),
             ),
           ),
@@ -583,7 +656,11 @@ class _BudgetScreenState extends State<BudgetScreen> {
               ),
               Text(
                 'Hạn mức: ${_currencyFormat.format(limit)}',
-                style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : const Color(0xFF475569),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -593,12 +670,23 @@ class _BudgetScreenState extends State<BudgetScreen> {
   }
 
   Widget _buildEmptyState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark.withOpacity(0.5),
+        color: isDark ? AppTheme.surfaceDark.withOpacity(0.5) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.cardDark.withOpacity(0.3)),
+        border: Border.all(
+          color: isDark ? AppTheme.cardDark.withOpacity(0.3) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+        ],
       ),
       child: Column(
         children: [

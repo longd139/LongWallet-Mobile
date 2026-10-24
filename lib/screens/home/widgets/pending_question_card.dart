@@ -57,6 +57,7 @@ class _PendingQuestionCardState extends State<PendingQuestionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isIncome = widget.transaction.type == 'INCOME';
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final formattedAmount = currencyFormatter.format(widget.transaction.amount);
@@ -68,15 +69,15 @@ class _PendingQuestionCardState extends State<PendingQuestionCard> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF131D2E), // Deep luxury navy slate
+        color: isDark ? const Color(0xFF131D2E) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: primaryAccent.withOpacity(0.55),
+          color: primaryAccent.withOpacity(isDark ? 0.55 : 0.35),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: primaryAccent.withOpacity(0.12),
+            color: primaryAccent.withOpacity(isDark ? 0.12 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -89,7 +90,7 @@ class _PendingQuestionCardState extends State<PendingQuestionCard> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: primaryAccent.withOpacity(0.12),
+              color: primaryAccent.withOpacity(isDark ? 0.12 : 0.1),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Row(
@@ -108,14 +109,14 @@ class _PendingQuestionCardState extends State<PendingQuestionCard> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.black26,
+                    color: isDark ? Colors.black26 : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Ngân hàng',
                     style: TextStyle(
                       fontSize: 11,
-                      color: Colors.white70,
+                      color: isDark ? Colors.white70 : const Color(0xFF475569),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -170,10 +171,10 @@ class _PendingQuestionCardState extends State<PendingQuestionCard> {
                 const SizedBox(height: 14),
                 Text(
                   isIncome ? 'Chọn nhanh nguồn tiền:' : 'Chọn nhanh mục chi:',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white70,
+                    color: isDark ? Colors.white70 : const Color(0xFF334155),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -198,12 +199,12 @@ class _PendingQuestionCardState extends State<PendingQuestionCard> {
                         decoration: BoxDecoration(
                           color: isSelected
                               ? primaryAccent
-                              : const Color(0xFF1E293B),
+                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: isSelected
                                 ? primaryAccent
-                                : Colors.white12,
+                                : (isDark ? Colors.white12 : const Color(0xFFE2E8F0)),
                           ),
                         ),
                         child: Text(
@@ -211,7 +212,9 @@ class _PendingQuestionCardState extends State<PendingQuestionCard> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? Colors.black : Colors.white,
+                            color: isSelected
+                                ? (isIncome ? Colors.black : Colors.white)
+                                : (isDark ? Colors.white : const Color(0xFF1E293B)),
                           ),
                         ),
                       ),
@@ -224,16 +227,27 @@ class _PendingQuestionCardState extends State<PendingQuestionCard> {
                 // Note textfield
                 TextField(
                   controller: _noteController,
-                  style: const TextStyle(fontSize: 13, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
                   decoration: InputDecoration(
                     hintText: isIncome ? 'Hoặc nhập nguồn tiền...' : 'Hoặc nhập nội dung chi tiêu...',
                     hintStyle: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
                     filled: true,
-                    fillColor: const Color(0xFF1E293B),
+                    fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.transparent : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.transparent : const Color(0xFFE2E8F0),
+                      ),
                     ),
                     isDense: true,
                   ),
