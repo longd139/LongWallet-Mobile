@@ -6,6 +6,7 @@ import '../../models/budget_model.dart';
 import '../../models/category_model.dart';
 import '../../providers/budget_provider.dart';
 import '../../providers/transaction_provider.dart';
+import '../../core/utils/category_icon_helper.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
@@ -85,11 +86,13 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
                     items: categories.map((cat) {
+                      final catIcon = CategoryIconHelper.getIcon(cat.icon);
+                      final catColor = CategoryIconHelper.hexToColor(cat.color);
                       return DropdownMenuItem<String>(
                         value: cat.id,
                         child: Row(
                           children: [
-                            const Icon(Icons.label_outline_rounded, size: 18, color: AppTheme.primaryEmerald),
+                            Icon(catIcon, size: 18, color: catColor),
                             const SizedBox(width: 8),
                             Text(cat.name, style: const TextStyle(color: Colors.white)),
                           ],
@@ -474,18 +477,27 @@ class _BudgetScreenState extends State<BudgetScreen> {
         children: [
           Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.category_rounded,
-                  color: statusColor,
-                  size: 20,
-                ),
+              Builder(
+                builder: (context) {
+                  final catIcon = CategoryIconHelper.getIcon(category?.icon);
+                  final catColor = category != null
+                      ? CategoryIconHelper.hexToColor(category.color)
+                      : statusColor;
+
+                  return Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: catColor.withOpacity(0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      catIcon,
+                      color: catColor,
+                      size: 20,
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 12),
               Expanded(

@@ -122,6 +122,54 @@ class SupabaseService {
     return (response as List).map((e) => CategoryModel.fromJson(e)).toList();
   }
 
+  Future<CategoryModel> createCategory({
+    required String name,
+    required String type,
+    required String icon,
+    required String color,
+  }) async {
+    final response = await client
+        .from('categories')
+        .insert({
+          'user_id': currentUserId,
+          'name': name,
+          'type': type,
+          'icon': icon,
+          'color': color,
+          'is_default': false,
+        })
+        .select()
+        .single();
+
+    return CategoryModel.fromJson(response);
+  }
+
+  Future<CategoryModel> updateCategory({
+    required String id,
+    required String name,
+    required String type,
+    required String icon,
+    required String color,
+  }) async {
+    final response = await client
+        .from('categories')
+        .update({
+          'name': name,
+          'type': type,
+          'icon': icon,
+          'color': color,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+    return CategoryModel.fromJson(response);
+  }
+
+  Future<void> deleteCategory(String id) async {
+    await client.from('categories').delete().eq('id', id);
+  }
+
   // ===================== BUDGETS =====================
   Future<List<BudgetModel>> getBudgets(String monthYear) async {
     final response = await client

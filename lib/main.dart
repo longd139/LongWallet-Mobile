@@ -7,6 +7,7 @@ import 'providers/auth_provider.dart';
 import 'providers/wallet_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'providers/budget_provider.dart';
+import 'providers/category_provider.dart';
 import 'screens/intro/splash_screen.dart';
 
 void main() async {
@@ -32,6 +33,7 @@ class LongWalletApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => WalletProvider()),
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => BudgetProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
       ],
       child: MaterialApp(
         title: AppConstants.appName,

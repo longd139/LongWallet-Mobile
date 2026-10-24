@@ -10,6 +10,7 @@ import '../transactions/add_transaction_screen.dart';
 import '../wallets/wallets_screen.dart';
 import '../budget/budget_screen.dart';
 import '../stats/stats_screen.dart';
+import '../categories/categories_screen.dart';
 
 import '../../core/widgets/custom_bottom_nav_bar.dart';
 import 'widgets/pending_question_card.dart';
@@ -532,6 +533,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const WalletsScreen()),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.category_outlined, color: Color(0xFFF59E0B)),
+                    title: const Text('Quản lý danh mục'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CategoriesScreen()),
                       );
                     },
                   ),
