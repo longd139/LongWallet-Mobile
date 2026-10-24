@@ -94,105 +94,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _showSimulateDialog() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF131D2E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Thử nghiệm thông báo ngân hàng',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Bắn thông báo giả lập lên thanh trạng thái điện thoại và hiển thị câu hỏi tương ứng trong Giao dịch gần đây.',
-                style: TextStyle(fontSize: 13, color: AppTheme.textMuted),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                tileColor: AppTheme.incomeGreen.withOpacity(0.1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(color: AppTheme.incomeGreen.withOpacity(0.3)),
-                ),
-                leading: const CircleAvatar(
-                  backgroundColor: AppTheme.incomeGreen,
-                  child: Icon(Icons.arrow_downward, color: Colors.black),
-                ),
-                title: const Text('Thử nhận tiền (+200.000 ₫)', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Hỏi: "Tiền này từ đâu?"', style: TextStyle(color: AppTheme.incomeGreen, fontSize: 12)),
-                trailing: const Icon(Icons.send_rounded, color: AppTheme.incomeGreen),
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  await _notificationService.simulateTransactionNotification(
-                    amount: 200000,
-                    type: 'INCOME',
-                    bankName: 'Vietcombank',
-                    content: 'Chuyen tien tieu vat',
-                  );
-                  if (mounted) {
-                    await context.read<TransactionProvider>().fetchTransactions();
-                    await context.read<WalletProvider>().fetchWallets();
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              ListTile(
-                tileColor: AppTheme.expenseRed.withOpacity(0.1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(color: AppTheme.expenseRed.withOpacity(0.3)),
-                ),
-                leading: const CircleAvatar(
-                  backgroundColor: AppTheme.expenseRed,
-                  child: Icon(Icons.arrow_upward, color: Colors.white),
-                ),
-                title: const Text('Thử chi tiền (-45.000 ₫)', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Hỏi: "Bạn đã chi tiêu cái gì?"', style: TextStyle(color: AppTheme.expenseRed, fontSize: 12)),
-                trailing: const Icon(Icons.send_rounded, color: AppTheme.expenseRed),
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  await _notificationService.simulateTransactionNotification(
-                    amount: 45000,
-                    type: 'EXPENSE',
-                    bankName: 'MB Bank',
-                    content: 'Thanh toan HighLand Coffee',
-                  );
-                  if (mounted) {
-                    await context.read<TransactionProvider>().fetchTransactions();
-                    await context.read<WalletProvider>().fetchWallets();
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -407,21 +308,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ],
-                  ),
-                  TextButton.icon(
-                    onPressed: _showSimulateDialog,
-                    icon: const Icon(Icons.science_outlined, size: 16, color: AppTheme.primaryEmerald),
-                    label: const Text(
-                      'Thử thông báo',
-                      style: TextStyle(fontSize: 12, color: AppTheme.primaryEmerald, fontWeight: FontWeight.w600),
-                    ),
-                    style: TextButton.styleFrom(
-                      backgroundColor: AppTheme.primaryEmerald.withOpacity(0.12),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
                   ),
                 ],
               ),
