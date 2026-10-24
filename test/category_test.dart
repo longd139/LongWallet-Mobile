@@ -87,6 +87,27 @@ void main() {
       expect(CategoryIconHelper.getIcon('unknown_key_xyz'), Icons.category_rounded);
     });
 
+    test('expenseIcons and incomeIcons are separated and valid', () {
+      expect(CategoryIconHelper.expenseIcons.isNotEmpty, true);
+      expect(CategoryIconHelper.incomeIcons.isNotEmpty, true);
+
+      // Verify expense has restaurant and car
+      expect(CategoryIconHelper.expenseIcons.any((i) => i.key == 'restaurant'), true);
+      expect(CategoryIconHelper.expenseIcons.any((i) => i.key == 'directions_car'), true);
+      expect(CategoryIconHelper.expenseIcons.any((i) => i.key == 'fastfood'), true);
+
+      // Verify income has payments and bonus
+      expect(CategoryIconHelper.incomeIcons.any((i) => i.key == 'payments'), true);
+      expect(CategoryIconHelper.incomeIcons.any((i) => i.key == 'military_tech'), true);
+      expect(CategoryIconHelper.incomeIcons.any((i) => i.key == 'storefront'), true);
+
+      // Available icons should combine both
+      expect(
+        CategoryIconHelper.availableIcons.length,
+        CategoryIconHelper.expenseIcons.length + CategoryIconHelper.incomeIcons.length,
+      );
+    });
+
     test('availableIcons and availableColors are populated and valid', () {
       expect(CategoryIconHelper.availableIcons.isNotEmpty, true);
       expect(CategoryIconHelper.availableColors.isNotEmpty, true);

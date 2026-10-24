@@ -105,6 +105,10 @@ class CategoryIconHelper {
       case 'salary':
       case 'payments':
         return Icons.payments_rounded;
+      case 'military_tech':
+      case 'bonus':
+      case 'reward':
+        return Icons.military_tech_rounded;
       case 'trending-up':
       case 'trending_up':
       case 'investment':
@@ -115,6 +119,23 @@ class CategoryIconHelper {
       case 'card_giftcard':
       case 'gift':
         return Icons.card_giftcard_rounded;
+      case 'storefront':
+      case 'business':
+      case 'shop':
+        return Icons.storefront_rounded;
+      case 'real_estate_agent':
+      case 'rental':
+        return Icons.real_estate_agent_rounded;
+      case 'currency_exchange':
+      case 'refund':
+        return Icons.currency_exchange_rounded;
+      case 'volunteer_activism':
+      case 'allowance':
+      case 'aid':
+        return Icons.volunteer_activism_rounded;
+      case 'account_balance':
+      case 'dividend':
+        return Icons.account_balance_rounded;
 
       // Living & Family
       case 'home':
@@ -152,30 +173,50 @@ class CategoryIconHelper {
     }
   }
 
-  /// Available selectable icons for categories
-  static const List<CategoryIconItem> availableIcons = [
+  /// Bộ icon chuyên biệt dành cho CHI TIÊU (Expense Icons)
+  static const List<CategoryIconItem> expenseIcons = [
     CategoryIconItem(key: 'restaurant', label: 'Ăn uống', icon: Icons.restaurant_rounded),
-    CategoryIconItem(key: 'local_cafe', label: 'Cà phê', icon: Icons.local_cafe_rounded),
+    CategoryIconItem(key: 'local_cafe', label: 'Cà phê/Trà', icon: Icons.local_cafe_rounded),
     CategoryIconItem(key: 'fastfood', label: 'Đồ ăn nhanh', icon: Icons.fastfood_rounded),
     CategoryIconItem(key: 'shopping_bag', label: 'Mua sắm', icon: Icons.shopping_bag_rounded),
-    CategoryIconItem(key: 'directions_car', label: 'Xe cộ', icon: Icons.directions_car_rounded),
+    CategoryIconItem(key: 'shopping_cart', label: 'Đi chợ/Siêu thị', icon: Icons.shopping_cart_rounded),
+    CategoryIconItem(key: 'directions_car', label: 'Xe cộ/Ô tô', icon: Icons.directions_car_rounded),
     CategoryIconItem(key: 'two_wheeler', label: 'Xe máy', icon: Icons.two_wheeler_rounded),
     CategoryIconItem(key: 'local_gas_station', label: 'Đổ xăng', icon: Icons.local_gas_station_rounded),
     CategoryIconItem(key: 'receipt_long', label: 'Hóa đơn', icon: Icons.receipt_long_rounded),
     CategoryIconItem(key: 'bolt', label: 'Điện nước', icon: Icons.bolt_rounded),
-    CategoryIconItem(key: 'home', label: 'Nhà cửa', icon: Icons.home_rounded),
-    CategoryIconItem(key: 'payments', label: 'Lương', icon: Icons.payments_rounded),
-    CategoryIconItem(key: 'trending_up', label: 'Đầu tư/Lãi', icon: Icons.trending_up_rounded),
-    CategoryIconItem(key: 'savings', label: 'Tiết kiệm', icon: Icons.savings_rounded),
-    CategoryIconItem(key: 'card_giftcard', label: 'Quà tặng', icon: Icons.card_giftcard_rounded),
-    CategoryIconItem(key: 'sports_esports', label: 'Giải trí', icon: Icons.sports_esports_rounded),
+    CategoryIconItem(key: 'home', label: 'Tiền nhà/Trọ', icon: Icons.home_rounded),
+    CategoryIconItem(key: 'sports_esports', label: 'Giải trí/Game', icon: Icons.sports_esports_rounded),
+    CategoryIconItem(key: 'movie', label: 'Xem phim', icon: Icons.movie_rounded),
     CategoryIconItem(key: 'medical_services', label: 'Y tế/Thuốc', icon: Icons.medical_services_rounded),
-    CategoryIconItem(key: 'fitness_center', label: 'Thể thao/Gym', icon: Icons.fitness_center_rounded),
-    CategoryIconItem(key: 'school', label: 'Học tập', icon: Icons.school_rounded),
+    CategoryIconItem(key: 'fitness_center', label: 'Gym/Thể thao', icon: Icons.fitness_center_rounded),
+    CategoryIconItem(key: 'school', label: 'Học tập/Sách', icon: Icons.school_rounded),
     CategoryIconItem(key: 'flight', label: 'Du lịch', icon: Icons.flight_takeoff_rounded),
     CategoryIconItem(key: 'pets', label: 'Thú cưng', icon: Icons.pets_rounded),
+    CategoryIconItem(key: 'phone_iphone', label: 'Điện thoại/4G', icon: Icons.phone_iphone_rounded),
+    CategoryIconItem(key: 'card_giftcard', label: 'Quà tặng/Hiếu hỉ', icon: Icons.card_giftcard_rounded),
     CategoryIconItem(key: 'category', label: 'Khác', icon: Icons.category_rounded),
   ];
+
+  /// Bộ icon chuyên biệt dành cho THU NHẬP (Income Icons)
+  static const List<CategoryIconItem> incomeIcons = [
+    CategoryIconItem(key: 'payments', label: 'Tiền lương', icon: Icons.payments_rounded),
+    CategoryIconItem(key: 'military_tech', label: 'Thưởng/Bonus', icon: Icons.military_tech_rounded),
+    CategoryIconItem(key: 'trending_up', label: 'Đầu tư/Lãi', icon: Icons.trending_up_rounded),
+    CategoryIconItem(key: 'savings', label: 'Tiết kiệm', icon: Icons.savings_rounded),
+    CategoryIconItem(key: 'work', label: 'Làm thêm/Freelance', icon: Icons.work_rounded),
+    CategoryIconItem(key: 'storefront', label: 'Kinh doanh/Bán lẻ', icon: Icons.storefront_rounded),
+    CategoryIconItem(key: 'real_estate_agent', label: 'Cho thuê nhà', icon: Icons.real_estate_agent_rounded),
+    CategoryIconItem(key: 'card_giftcard', label: 'Quà tặng/Mừng', icon: Icons.card_giftcard_rounded),
+    CategoryIconItem(key: 'currency_exchange', label: 'Hoàn tiền/Đòi nợ', icon: Icons.currency_exchange_rounded),
+    CategoryIconItem(key: 'account_balance', label: 'Cổ tức/Ngân hàng', icon: Icons.account_balance_rounded),
+    CategoryIconItem(key: 'volunteer_activism', label: 'Trợ cấp/Học bổng', icon: Icons.volunteer_activism_rounded),
+    CategoryIconItem(key: 'wallet', label: 'Ví phụ/Thu khác', icon: Icons.account_balance_wallet_rounded),
+    CategoryIconItem(key: 'category', label: 'Khác', icon: Icons.category_rounded),
+  ];
+
+  /// Danh sách toàn bộ icon (để tra cứu và tương thích ngược)
+  static List<CategoryIconItem> get availableIcons => [...expenseIcons, ...incomeIcons];
 
   /// Available selectable colors
   static const List<CategoryColorItem> availableColors = [

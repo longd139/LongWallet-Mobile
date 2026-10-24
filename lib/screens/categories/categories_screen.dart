@@ -397,6 +397,9 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
     final isEditing = widget.existingCategory != null;
     final currentIcon = CategoryIconHelper.getIcon(_selectedIconKey);
     final currentColor = CategoryIconHelper.hexToColor(_selectedColorHex);
+    final currentIcons = _selectedType == 'EXPENSE'
+        ? CategoryIconHelper.expenseIcons
+        : CategoryIconHelper.incomeIcons;
 
     return Container(
       padding: EdgeInsets.only(
@@ -535,6 +538,9 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                           if (!isEditing && _selectedColorHex == '#10B981') {
                             _selectedColorHex = '#EF4444';
                           }
+                          if (!CategoryIconHelper.expenseIcons.any((i) => i.key.toLowerCase() == _selectedIconKey.toLowerCase())) {
+                            _selectedIconKey = 'restaurant';
+                          }
                         });
                       },
                       child: AnimatedContainer(
@@ -564,6 +570,9 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                           _selectedType = 'INCOME';
                           if (!isEditing && _selectedColorHex == '#EF4444') {
                             _selectedColorHex = '#10B981';
+                          }
+                          if (!CategoryIconHelper.incomeIcons.any((i) => i.key.toLowerCase() == _selectedIconKey.toLowerCase())) {
+                            _selectedIconKey = 'payments';
                           }
                         });
                       },
@@ -650,9 +659,11 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
             const SizedBox(height: 20),
 
             // Icon Selector
-            const Text(
-              'Chọn biểu tượng (Icon):',
-              style: TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w600),
+            Text(
+              _selectedType == 'EXPENSE'
+                  ? 'Chọn biểu tượng Chi tiêu:'
+                  : 'Chọn biểu tượng Thu nhập:',
+              style: const TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 10),
             Container(
@@ -664,7 +675,7 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                 border: Border.all(color: AppTheme.cardDark.withOpacity(0.6)),
               ),
               child: GridView.builder(
-                itemCount: CategoryIconHelper.availableIcons.length,
+                itemCount: currentIcons.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4,
                   childAspectRatio: 1.1,
@@ -672,7 +683,7 @@ class _CategoryFormSheetState extends State<_CategoryFormSheet> {
                   mainAxisSpacing: 8,
                 ),
                 itemBuilder: (context, index) {
-                  final item = CategoryIconHelper.availableIcons[index];
+                  final item = currentIcons[index];
                   final isSelected = _selectedIconKey.toLowerCase() == item.key.toLowerCase();
 
                   return InkWell(
