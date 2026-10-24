@@ -290,7 +290,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                   final catSpent = budgetProvider.calculateSpentForCategory(budget.categoryId, transactions);
                   return _buildCategoryBudgetCard(budget, category, catSpent, budgetProvider);
                 }),
-              const SizedBox(height: 32),
+              const SizedBox(height: 120),
             ],
           ),
         ),

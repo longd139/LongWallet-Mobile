@@ -569,7 +569,7 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
       itemCount: list.length,
       itemBuilder: (context, index) {
         final item = list[index];

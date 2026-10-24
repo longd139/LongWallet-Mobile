@@ -116,7 +116,7 @@ class WalletsScreen extends StatelessWidget {
       body: walletProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
               itemCount: walletProvider.wallets.length,
               itemBuilder: (context, index) {
                 final wallet = walletProvider.wallets[index];
