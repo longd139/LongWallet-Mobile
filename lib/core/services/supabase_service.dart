@@ -233,6 +233,14 @@ class SupabaseService {
     return DebtModel.fromJson(response);
   }
 
+  Future<void> recordDebtPayment(String id, double newPaidAmount, bool isSettled) async {
+    await client.from('debts').update({
+      'paid_amount': newPaidAmount,
+      'is_settled': isSettled,
+      'updated_at': DateTime.now().toIso8601String(),
+    }).eq('id', id);
+  }
+
   Future<void> updateDebtSettled(String id, bool isSettled) async {
     await client.from('debts').update({
       'is_settled': isSettled,

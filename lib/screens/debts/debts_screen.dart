@@ -627,7 +627,11 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          currencyFormatter.format(item.amount),
+                          isSettled
+                              ? currencyFormatter.format(item.amount)
+                              : (item.paidAmount > 0
+                                  ? 'Còn: ${currencyFormatter.format(item.remainingAmount)}'
+                                  : currencyFormatter.format(item.amount)),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -637,25 +641,44 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                                 : (isDebt ? const Color(0xFFEF4444) : AppTheme.primaryEmerald),
                           ),
                         ),
+                        if (!isSettled && item.paidAmount > 0)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 1),
+                            child: Text(
+                              'Tổng: ${currencyFormatter.format(item.amount)}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.textMuted,
+                              ),
+                            ),
+                          ),
                         const SizedBox(height: 4),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: isSettled
                                 ? Colors.grey.withOpacity(0.15)
-                                : (isDebt
-                                    ? const Color(0xFFEF4444).withOpacity(0.12)
-                                    : AppTheme.primaryEmerald.withOpacity(0.12)),
+                                : (item.paidAmount > 0
+                                    ? Colors.amber.withOpacity(0.15)
+                                    : (isDebt
+                                        ? const Color(0xFFEF4444).withOpacity(0.12)
+                                        : AppTheme.primaryEmerald.withOpacity(0.12))),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            isSettled ? 'Đã xong' : 'Chưa trả',
+                            isSettled
+                                ? 'Đã xong'
+                                : (item.paidAmount > 0
+                                    ? 'Đang trả ${(item.progress * 100).toInt()}%'
+                                    : (isDebt ? 'Chưa trả' : 'Chưa thu')),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: isSettled
                                   ? Colors.grey
-                                  : (isDebt ? const Color(0xFFEF4444) : AppTheme.primaryEmerald),
+                                  : (item.paidAmount > 0
+                                      ? Colors.amber.shade700
+                                      : (isDebt ? const Color(0xFFEF4444) : AppTheme.primaryEmerald)),
                             ),
                           ),
                         ),
@@ -664,7 +687,46 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                   ],
                 ),
 
-                if (item.dueDate != null || (item.note != null && item.note!.isNotEmpty)) ...[
+                if (!isSettled && item.paidAmount > 0) ...[
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: item.progress,
+                      minHeight: 6,
+                      backgroundColor: isDark ? Colors.white12 : Colors.grey.shade200,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isDebt ? const Color(0xFFEF4444) : AppTheme.primaryEmerald,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Đã trả: ${currencyFormatter.format(item.paidAmount)}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white70 : const Color(0xFF475569),
+                        ),
+                      ),
+                      Text(
+                        'Còn nợ: ${currencyFormatter.format(item.remainingAmount)}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isDebt ? const Color(0xFFEF4444) : AppTheme.primaryEmerald,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+
+                if (item.dueDate != null ||
+                    (item.monthlyAmount != null && item.monthlyAmount! > 0) ||
+                    (item.note != null && item.note!.isNotEmpty)) ...[
                   const Divider(height: 20),
                   Row(
                     children: [
@@ -685,15 +747,15 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                         ),
                         const SizedBox(width: 12),
                       ],
-                      if (isDebt && item.monthlyAmount != null && item.monthlyAmount! > 0) ...[
-                        Icon(
+                      if (isDebt && item.monthlyAmount != null && item.monthlyAmount! > 0 && !isSettled) ...[
+                        const Icon(
                           Icons.calendar_month_rounded,
                           size: 14,
-                          color: const Color(0xFFEF4444),
+                          color: Color(0xFFEF4444),
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Trả tháng này: ${currencyFormatter.format(item.monthlyAmount)}',
+                          'Kỳ này: ${currencyFormatter.format(item.monthlyDue)}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFFEF4444),
@@ -723,21 +785,61 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton.icon(
-                      onPressed: () => context.read<DebtProvider>().toggleSettle(item),
-                      icon: Icon(
-                        isSettled ? Icons.undo_rounded : Icons.check_circle_outline_rounded,
-                        size: 16,
-                        color: isSettled ? Colors.grey : AppTheme.primaryEmerald,
-                      ),
-                      label: Text(
-                        isSettled ? 'Đánh dấu chưa trả' : 'Đã thanh toán',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isSettled ? Colors.grey : AppTheme.primaryEmerald,
+                    if (!isSettled) ...[
+                      TextButton.icon(
+                        onPressed: () => _confirmSettleAll(context, item),
+                        icon: const Icon(
+                          Icons.done_all_rounded,
+                          size: 16,
+                          color: AppTheme.textMuted,
+                        ),
+                        label: const Text(
+                          'Tất toán',
+                          style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 6),
+                      ElevatedButton.icon(
+                        onPressed: () => _showPaymentDialog(
+                          context,
+                          item,
+                          isDark,
+                          currencyFormatter,
+                          isDebt: isDebt,
+                        ),
+                        icon: Icon(
+                          isDebt ? Icons.payment_rounded : Icons.price_check_rounded,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          isDebt ? 'Trả nợ' : 'Thu tiền',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDebt ? const Color(0xFFEF4444) : AppTheme.primaryEmerald,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ] else ...[
+                      TextButton.icon(
+                        onPressed: () => context.read<DebtProvider>().toggleSettle(item),
+                        icon: const Icon(
+                          Icons.undo_rounded,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                        label: const Text(
+                          'Đánh dấu chưa trả',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(width: 4),
                     IconButton(
                       icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppTheme.textMuted),
                       tooltip: 'Xóa khoản nợ',
@@ -748,6 +850,207 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _confirmSettleAll(BuildContext context, DebtModel item) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tất toán khoản nợ'),
+        content: Text(
+          'Bạn có muốn tất toán toàn bộ số tiền còn lại (${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(item.remainingAmount)}) cho "${item.personName}" không?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<DebtProvider>().toggleSettle(item);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryEmerald,
+            ),
+            child: const Text('Tất toán ngay', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPaymentDialog(
+    BuildContext context,
+    DebtModel item,
+    bool isDark,
+    NumberFormat currencyFormatter, {
+    required bool isDebt,
+  }) {
+    final payCtrl = TextEditingController();
+    // Gợi ý số tiền trả mặc định: kỳ này hoặc dư nợ còn lại
+    final defaultAmount = item.monthlyDue > 0 ? item.monthlyDue : item.remainingAmount;
+    payCtrl.text = defaultAmount > 0 ? NumberFormat('#,###', 'vi_VN').format(defaultAmount) : '';
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            isDebt ? 'Ghi nhận trả nợ' : 'Ghi nhận thu tiền',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Đối tượng:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
+                          Text(
+                            item.personName,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Tổng số tiền:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
+                          Text(
+                            currencyFormatter.format(item.amount),
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Đã trả trước đó:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
+                          Text(
+                            currencyFormatter.format(item.paidAmount),
+                            style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Còn nợ:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text(
+                            currencyFormatter.format(item.remainingAmount),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: isDebt ? const Color(0xFFEF4444) : AppTheme.primaryEmerald,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Số tiền thanh toán lần này:',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: payCtrl,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [CurrencyTextInputFormatter()],
+                  decoration: InputDecoration(
+                    hintText: 'Nhập số tiền...',
+                    suffixText: 'đ',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Gợi ý nhanh (có thể trả nhiều tháng hoặc trả dư do lãi):',
+                  style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    if (item.monthlyDue > 0 && item.monthlyDue != item.remainingAmount)
+                      ActionChip(
+                        label: Text('1 kỳ (${currencyFormatter.format(item.monthlyDue)})', style: const TextStyle(fontSize: 11)),
+                        onPressed: () {
+                          payCtrl.text = NumberFormat('#,###', 'vi_VN').format(item.monthlyDue);
+                        },
+                      ),
+                    if (item.monthlyAmount != null &&
+                        item.monthlyAmount! * 2 <= item.remainingAmount &&
+                        item.monthlyAmount! * 2 > 0)
+                      ActionChip(
+                        label: Text('2 kỳ (${currencyFormatter.format(item.monthlyAmount! * 2)})', style: const TextStyle(fontSize: 11)),
+                        onPressed: () {
+                          payCtrl.text = NumberFormat('#,###', 'vi_VN').format(item.monthlyAmount! * 2);
+                        },
+                      ),
+                    ActionChip(
+                      label: Text('Hết nợ (${currencyFormatter.format(item.remainingAmount)})', style: const TextStyle(fontSize: 11)),
+                      onPressed: () {
+                        payCtrl.text = NumberFormat('#,###', 'vi_VN').format(item.remainingAmount);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Hủy'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final text = payCtrl.text.replaceAll('.', '').replaceAll(',', '').trim();
+                final payVal = double.tryParse(text) ?? 0;
+                if (payVal <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Vui lòng nhập số tiền hợp lệ')),
+                  );
+                  return;
+                }
+                Navigator.pop(ctx);
+                context.read<DebtProvider>().recordPayment(item, payVal);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Đã ghi nhận thanh toán ${currencyFormatter.format(payVal)} thành công!'),
+                    backgroundColor: AppTheme.primaryEmerald,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDebt ? const Color(0xFFEF4444) : AppTheme.primaryEmerald,
+              ),
+              child: const Text('Xác nhận', style: TextStyle(color: Colors.white)),
+            ),
+          ],
         );
       },
     );
