@@ -601,11 +601,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              // Right: Hình ảnh chiếc xe Winner X V4 (Nền trong suốt)
+              const SizedBox(width: 8),
+              // Right: Hình ảnh chiếc xe Winner X V4 (Nền trong suốt, kích thước lớn)
               SizedBox(
-                width: 108,
-                height: 88,
+                width: 140,
+                height: 112,
                 child: Image.memory(
                   WinnerXImage.bytes,
                   fit: BoxFit.contain,
