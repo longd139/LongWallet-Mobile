@@ -28,31 +28,42 @@ class CustomBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(left: 18, right: 18, bottom: 20),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B), // Matches AppTheme.surfaceDark
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(36),
         border: Border.all(
-          color: const Color(0xFF334155).withOpacity(0.9), // Border
+          color: isDark
+              ? const Color(0xFF334155).withOpacity(0.9)
+              : const Color(0xFFE2E8F0),
           width: 1.2,
         ),
         boxShadow: [
-          // Ambient dark drop shadow
-          BoxShadow(
-            color: Colors.black.withOpacity(0.45),
-            blurRadius: 28,
-            spreadRadius: 2,
-            offset: const Offset(0, 10),
-          ),
-          // Subtle theme glow
-          BoxShadow(
-            color: const Color(0xFF10B981).withOpacity(0.08),
-            blurRadius: 20,
-            spreadRadius: -2,
-            offset: const Offset(0, -2),
-          ),
+          if (isDark) ...[
+            BoxShadow(
+              color: Colors.black.withOpacity(0.45),
+              blurRadius: 28,
+              spreadRadius: 2,
+              offset: const Offset(0, 10),
+            ),
+            BoxShadow(
+              color: const Color(0xFF10B981).withOpacity(0.08),
+              blurRadius: 20,
+              spreadRadius: -2,
+              offset: const Offset(0, -2),
+            ),
+          ] else ...[
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 24,
+              spreadRadius: 0,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ],
       ),
       child: Row(
@@ -129,6 +140,8 @@ class _AnimatedNavItemState extends State<_AnimatedNavItem>
     final item = widget.item;
     final isSelected = widget.isSelected;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _handleTap,
@@ -190,7 +203,7 @@ class _AnimatedNavItemState extends State<_AnimatedNavItem>
                       size: isSelected ? 26 : 24,
                       color: isSelected
                           ? item.activeColor
-                          : const Color(0xFF94A3B8), // AppTheme.textMuted
+                          : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                     ),
                   ),
                 ],
@@ -206,8 +219,8 @@ class _AnimatedNavItemState extends State<_AnimatedNavItem>
                 fontSize: isSelected ? 12.5 : 12.0,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                 color: isSelected
-                    ? Colors.white
-                    : const Color(0xFF64748B), // Soft muted slate
+                    ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                    : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
                 letterSpacing: -0.2,
               ),
               child: Text(

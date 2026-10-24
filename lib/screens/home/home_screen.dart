@@ -14,6 +14,7 @@ import '../categories/categories_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/currency_input_formatter.dart';
+import '../../providers/theme_provider.dart';
 
 import '../../core/widgets/custom_bottom_nav_bar.dart';
 import 'widgets/pending_question_card.dart';
@@ -481,6 +482,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildGoalCard(double currentBalance) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final progress = (_goalTargetAmount > 0 ? (currentBalance / _goalTargetAmount) : 0.0).clamp(0.0, 1.0);
     final percent = (progress * 100).toStringAsFixed(1);
 
@@ -493,15 +495,15 @@ class _HomeScreenState extends State<HomeScreen> {
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF141923),
+            color: isDark ? const Color(0xFF141923) : Colors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: const Color(0xFFDC2626).withOpacity(0.35),
+              color: const Color(0xFFDC2626).withOpacity(isDark ? 0.35 : 0.22),
               width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFDC2626).withOpacity(0.08),
+                color: const Color(0xFFDC2626).withOpacity(isDark ? 0.08 : 0.05),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
@@ -520,7 +522,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFDC2626).withOpacity(0.18),
+                            color: const Color(0xFFDC2626).withOpacity(isDark ? 0.18 : 0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Row(
@@ -541,14 +543,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Icon(Icons.edit_outlined, size: 13, color: Colors.white38),
+                        Icon(
+                          Icons.edit_outlined,
+                          size: 13,
+                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
                       _goalTitle,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -558,8 +564,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 2),
                     Text(
                       _goalSlogan,
-                      style: const TextStyle(
-                        color: AppTheme.textMuted,
+                      style: TextStyle(
+                        color: isDark ? AppTheme.textMuted : const Color(0xFF64748B),
                         fontSize: 11,
                         fontStyle: FontStyle.italic,
                       ),
@@ -572,7 +578,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: LinearProgressIndicator(
                         value: progress,
                         minHeight: 6,
-                        backgroundColor: Colors.white10,
+                        backgroundColor: isDark ? Colors.white10 : const Color(0xFFFEE2E2),
                         valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFEF4444)),
                       ),
                     ),
@@ -582,8 +588,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           '${currencyFormatter.format(currentBalance)} / ${_formatTargetShort(_goalTargetAmount)}',
-                          style: const TextStyle(
-                            color: Colors.white70,
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : const Color(0xFF475569),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -898,6 +904,37 @@ class _HomeScreenState extends State<HomeScreen> {
             Card(
               child: Column(
                 children: [
+                  // Mục chỉnh Sáng / Tối (Icon solid 1 màu, không dùng icon bàn phím)
+                  Consumer<ThemeProvider>(
+                    builder: (context, themeProvider, child) {
+                      final isDark = themeProvider.isDarkMode;
+                      return SwitchListTile.adaptive(
+                        secondary: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF59E0B).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                            color: const Color(0xFFF59E0B),
+                          ),
+                        ),
+                        title: Text(
+                          isDark ? 'Giao diện tối' : 'Giao diện sáng',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        subtitle: Text(
+                          isDark ? 'Đang bật chế độ ban đêm' : 'Đang bật chế độ ban ngày',
+                          style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                        ),
+                        value: isDark,
+                        activeColor: AppTheme.primaryEmerald,
+                        onChanged: (_) => themeProvider.toggleTheme(),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1, indent: 64, endIndent: 16),
                   ListTile(
                     leading: const Icon(Icons.notifications_active_outlined, color: AppTheme.primaryEmerald),
                     title: const Text('Lắng nghe biến động ngân hàng'),
