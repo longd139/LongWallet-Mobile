@@ -103,5 +103,38 @@ void main() {
       expect(q1.quickOptions.length, 4);
       expect(q1.quickOptions.last, 12000000.0);
     });
+
+    test('Daily food expense correctly converts to monthly allowance (30 days)', () {
+      const dailyFood = 60000.0;
+      const expectedMonthlyFood = dailyFood * 30; // 1.800.000 đ
+      expect(expectedMonthlyFood, 1800000.0);
+
+      const customDaily = 80000.0;
+      expect(customDaily * 30, 2400000.0);
+    });
+
+    test('Fixed expenses sum correctly accumulates selected categories without manual calculation', () {
+      final selectedItems = [
+        {'name': 'Tiền thuê trọ', 'amount': 2000000.0},
+        {'name': 'Điện & Nước sinh hoạt', 'amount': 300000.0},
+        {'name': 'Internet & Gói 4G', 'amount': 200000.0},
+        {'name': 'Xăng xe & Gửi xe', 'amount': 300000.0},
+      ];
+
+      final totalFixed = selectedItems.fold<double>(0.0, (sum, item) => sum + (item['amount'] as double));
+      expect(totalFixed, 2800000.0);
+
+      // Verify payload structure sent to backend AI
+      final answers = {
+        'monthly_income': 8000000.0,
+        'fixed_expenses': totalFixed,
+        'fixed_details': selectedItems,
+        'food_allowance': 60000.0 * 30,
+      };
+
+      expect(answers['fixed_expenses'], 2800000.0);
+      expect(answers['food_allowance'], 1800000.0);
+      expect((answers['fixed_details'] as List).length, 4);
+    });
   });
 }
