@@ -200,6 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
+      extendBody: true,
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(), // Only navigate through tabs
@@ -466,6 +467,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
+              const SizedBox(height: 100),
             ],
           ),
         ),

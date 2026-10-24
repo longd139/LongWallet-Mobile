@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CustomNavItem {
   final IconData icon;
@@ -30,56 +31,66 @@ class CustomBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      margin: const EdgeInsets.only(left: 18, right: 18, bottom: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(36),
-        border: Border.all(
-          color: isDark
-              ? const Color(0xFF334155).withOpacity(0.9)
-              : const Color(0xFFE2E8F0),
-          width: 1.2,
-        ),
-        boxShadow: [
-          if (isDark) ...[
-            BoxShadow(
-              color: Colors.black.withOpacity(0.45),
-              blurRadius: 28,
-              spreadRadius: 2,
-              offset: const Offset(0, 10),
-            ),
-            BoxShadow(
-              color: const Color(0xFF10B981).withOpacity(0.08),
-              blurRadius: 20,
-              spreadRadius: -2,
-              offset: const Offset(0, -2),
-            ),
-          ] else ...[
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 24,
-              spreadRadius: 0,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (index) {
-          final item = items[index];
-          final isSelected = index == currentIndex;
-
-          return Expanded(
-            child: _AnimatedNavItem(
-              item: item,
-              isSelected: isSelected,
-              onTap: () => onTap(index),
+      child: SafeArea(
+        top: false,
+        child: Container(
+          margin: const EdgeInsets.only(left: 18, right: 18, bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(36),
+            border: Border.all(
+              color: isDark
+                  ? const Color(0xFF334155).withOpacity(0.9)
+                  : const Color(0xFFE2E8F0),
+              width: 1.2,
             ),
-          );
-        }),
+            boxShadow: [
+              if (isDark) ...[
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.45),
+                  blurRadius: 28,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: const Color(0xFF10B981).withOpacity(0.08),
+                  blurRadius: 20,
+                  spreadRadius: -2,
+                  offset: const Offset(0, -2),
+                ),
+              ] else ...[
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 24,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(items.length, (index) {
+              final item = items[index];
+              final isSelected = index == currentIndex;
+
+              return Expanded(
+                child: _AnimatedNavItem(
+                  item: item,
+                  isSelected: isSelected,
+                  onTap: () => onTap(index),
+                ),
+              );
+            }),
+          ),
+        ),
       ),
     );
   }
