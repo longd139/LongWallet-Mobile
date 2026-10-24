@@ -15,4 +15,8 @@ class AppConstants {
     'com.mservice.momotransfer': 'MoMo',
     'com.vng.zingpay': 'ZaloPay',
   };
+
+  // Goal Motivation Image (Winner X V4 Cloudinary URL)
+  static const String winnerXImageUrl =
+      'https://res.cloudinary.com/tkfku9hx/image/upload/v1792846169/winnerx-db-do-removebg-preview.png';
 }

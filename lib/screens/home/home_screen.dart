@@ -12,7 +12,7 @@ import '../budget/budget_screen.dart';
 import '../stats/stats_screen.dart';
 import '../categories/categories_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/constants/winner_x_image.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/utils/currency_input_formatter.dart';
 
 import '../../core/widgets/custom_bottom_nav_bar.dart';
@@ -602,13 +602,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              // Right: Hình ảnh chiếc xe Winner X V4 (Nền trong suốt, kích thước lớn)
+              // Right: Hình ảnh chiếc xe Winner X V4 (Cloudinary URL, Nền trong suốt, kích thước lớn)
               SizedBox(
                 width: 140,
                 height: 112,
-                child: Image.memory(
-                  WinnerXImage.bytes,
+                child: Image.network(
+                  AppConstants.winnerXImageUrl,
                   fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFFEF4444),
+                        ),
+                      ),
+                    );
+                  },
                   errorBuilder: (context, error, stackTrace) => Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFFDC2626).withOpacity(0.12),
