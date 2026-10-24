@@ -373,10 +373,8 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
                 size: 18,
               ),
               label: Text(
-                isLast
-                    ? 'Tạo ngân sách cá nhân hóa ngay'
-                    : 'Tiếp tục (Câu ${_currentQuestionIndex + 2}/$total)',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+                isLast ? 'Tạo ngân sách cá nhân hóa ngay' : 'Tiếp tục',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF8B5CF6),
@@ -398,9 +396,7 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
         size: 18,
       ),
       label: Text(
-        isLast
-            ? 'Tạo ngân sách cá nhân hóa ngay'
-            : 'Tiếp tục (Câu 2/$total)',
+        isLast ? 'Tạo ngân sách cá nhân hóa ngay' : 'Tiếp tục',
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
       ),
       style: ElevatedButton.styleFrom(
