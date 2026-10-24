@@ -20,6 +20,11 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DebtProvider>().fetchDebts();
     });
@@ -31,12 +36,12 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
     super.dispose();
   }
 
-  void _showAddDebtDialog(BuildContext context, {String defaultType = 'DEBT'}) {
+  void _showAddDebtDialog(BuildContext context, {String? defaultType}) {
     final nameCtrl = TextEditingController();
     final amountCtrl = TextEditingController();
     final noteCtrl = TextEditingController();
     DateTime? selectedDueDate;
-    String selectedType = defaultType;
+    String selectedType = defaultType ?? (_tabController.index == 0 ? 'DEBT' : 'LOAN');
 
     showModalBottomSheet(
       context: context,
@@ -270,6 +275,10 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
 
                       if (ctx.mounted) {
                         Navigator.pop(ctx);
+                        final targetIndex = selectedType == 'DEBT' ? 0 : 1;
+                        if (_tabController.index != targetIndex) {
+                          _tabController.animateTo(targetIndex);
+                        }
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(selectedType == 'DEBT'
@@ -313,7 +322,10 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: 'Thêm ghi chép nợ',
-            onPressed: () => _showAddDebtDialog(context),
+            onPressed: () => _showAddDebtDialog(
+              context,
+              defaultType: _tabController.index == 0 ? 'DEBT' : 'LOAN',
+            ),
           ),
         ],
       ),
