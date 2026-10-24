@@ -52,11 +52,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void _loadGoal() async {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
+      final title = prefs.getString('goal_title') ?? 'Honda Winner X V4';
       setState(() {
-        _goalTitle = prefs.getString('goal_title') ?? 'Honda Winner X V4';
+        _goalTitle = title;
         _goalTargetAmount = prefs.getDouble('goal_target') ?? 50000000;
         _goalSlogan = prefs.getString('goal_slogan') ?? 'Cày cuốc gom tiền – Quyết liền Winner X';
       });
+      context.read<WalletProvider>().ensureGoalWallet(title);
     }
   }
 
@@ -320,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 16),
 
               // Goal Motivation Card (Winner X V4)
-              _buildGoalCard(walletProvider.totalBalance),
+              _buildGoalCard(walletProvider.goalWallet?.currentBalance ?? 0.0),
 
               // Total Balance Card
               Card(
@@ -823,6 +825,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       });
 
                       if (mounted) {
+                        context.read<WalletProvider>().ensureGoalWallet(newTitle);
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(

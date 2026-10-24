@@ -120,7 +120,26 @@ class WalletsScreen extends StatelessWidget {
               itemCount: walletProvider.wallets.length,
               itemBuilder: (context, index) {
                 final wallet = walletProvider.wallets[index];
-                final isBank = wallet.packageName != null;
+                final isGoal = wallet.bankCode == 'GOAL';
+                final isBank = !isGoal && wallet.packageName != null;
+
+                Color iconBgColor;
+                Color iconColor;
+                IconData iconData;
+
+                if (isGoal) {
+                  iconBgColor = const Color(0xFFEF4444).withOpacity(0.18);
+                  iconColor = const Color(0xFFEF4444);
+                  iconData = Icons.flag_rounded;
+                } else if (isBank) {
+                  iconBgColor = Colors.blue.withOpacity(0.2);
+                  iconColor = Colors.blue;
+                  iconData = Icons.account_balance;
+                } else {
+                  iconBgColor = AppTheme.primaryEmerald.withOpacity(0.2);
+                  iconColor = AppTheme.primaryEmerald;
+                  iconData = Icons.wallet;
+                }
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -128,10 +147,10 @@ class WalletsScreen extends StatelessWidget {
                     contentPadding: const EdgeInsets.all(16),
                     leading: CircleAvatar(
                       radius: 24,
-                      backgroundColor: isBank ? Colors.blue.withOpacity(0.2) : AppTheme.primaryEmerald.withOpacity(0.2),
+                      backgroundColor: iconBgColor,
                       child: Icon(
-                        isBank ? Icons.account_balance : Icons.wallet,
-                        color: isBank ? Colors.blue : AppTheme.primaryEmerald,
+                        iconData,
+                        color: iconColor,
                       ),
                     ),
                     title: Text(wallet.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -139,21 +158,35 @@ class WalletsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 4),
-                        if (wallet.accountNumber != null)
-                          Text('STK: ${wallet.accountNumber}', style: const TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-                        if (isBank)
+                        if (isGoal)
                           const Row(
                             children: [
-                              Icon(Icons.sync, size: 12, color: AppTheme.primaryEmerald),
+                              Icon(Icons.stars_rounded, size: 14, color: Color(0xFFEF4444)),
                               SizedBox(width: 4),
-                              Text('Tự động bắt số dư', style: TextStyle(color: AppTheme.primaryEmerald, fontSize: 11)),
+                              Text('Ví mục tiêu tích lũy', style: TextStyle(color: Color(0xFFEF4444), fontSize: 12, fontWeight: FontWeight.bold)),
                             ],
-                          ),
+                          )
+                        else ...[
+                          if (wallet.accountNumber != null)
+                            Text('STK: ${wallet.accountNumber}', style: const TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                          if (isBank)
+                            const Row(
+                              children: [
+                                Icon(Icons.sync, size: 12, color: AppTheme.primaryEmerald),
+                                SizedBox(width: 4),
+                                Text('Tự động bắt số dư', style: TextStyle(color: AppTheme.primaryEmerald, fontSize: 11)),
+                              ],
+                            ),
+                        ],
                       ],
                     ),
                     trailing: Text(
                       currencyFormatter.format(wallet.currentBalance),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: isGoal ? const Color(0xFFEF4444) : null,
+                      ),
                     ),
                   ),
                 );
