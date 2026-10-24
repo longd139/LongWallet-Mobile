@@ -4,6 +4,7 @@ import '../models/budget_model.dart';
 import '../models/category_model.dart';
 import '../models/transaction_model.dart';
 import '../core/services/supabase_service.dart';
+import '../core/services/ai_service.dart';
 
 class BudgetProvider extends ChangeNotifier {
   final SupabaseService? _injectedService;
@@ -74,6 +75,38 @@ class BudgetProvider extends ChangeNotifier {
       _errorMessage = e.toString();
       debugPrint('Error setting budget: $e');
       rethrow;
+    }
+  }
+
+  /// Áp dụng danh sách ngân sách do Gemini AI tự động tính toán và đề xuất
+  Future<void> applyAiBudgetPlan(List<SuggestedBudget> suggestedBudgets) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      for (final item in suggestedBudgets) {
+        if (item.amountLimit > 0 && item.categoryId.isNotEmpty) {
+          final updated = await _supabaseService.setBudget(
+            categoryId: item.categoryId,
+            amountLimit: item.amountLimit,
+            monthYear: currentMonthYear,
+          );
+          final idx = _budgets.indexWhere((b) => b.id == updated.id || (b.categoryId == item.categoryId && b.monthYear == currentMonthYear));
+          if (idx >= 0) {
+            _budgets[idx] = updated;
+          } else {
+            _budgets.add(updated);
+          }
+        }
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      debugPrint('Error applying AI budget plan: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

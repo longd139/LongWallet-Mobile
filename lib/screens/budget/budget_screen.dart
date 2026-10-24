@@ -8,6 +8,8 @@ import '../../providers/budget_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../core/utils/category_icon_helper.dart';
 import '../../core/utils/currency_input_formatter.dart';
+import '../../providers/wallet_provider.dart';
+import '../ai/ai_financial_plan_sheet.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
@@ -205,8 +207,24 @@ class _BudgetScreenState extends State<BudgetScreen> {
         title: const Text('Ngân sách chi tiêu'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF8B5CF6)),
+            tooltip: 'Gemini AI tạo ngân sách',
+            onPressed: () {
+              final walletProvider = context.read<WalletProvider>();
+              AiFinancialPlanSheet.show(
+                context,
+                totalBalance: walletProvider.totalBalance,
+                goal: {
+                  'name': 'Honda Winner X V4',
+                  'targetAmount': 50000000.0,
+                  'currentBalance': walletProvider.goalWallet?.currentBalance ?? 0.0,
+                },
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.add_circle_outline_rounded, color: AppTheme.primaryEmerald),
-            tooltip: 'Thêm hạn mức',
+            tooltip: 'Thêm hạn mức thủ công',
             onPressed: () => _showSetBudgetBottomSheet(),
           ),
         ],
@@ -711,9 +729,31 @@ class _BudgetScreenState extends State<BudgetScreen> {
           ),
           const SizedBox(height: 20),
           ElevatedButton.icon(
+            onPressed: () {
+              final walletProvider = context.read<WalletProvider>();
+              AiFinancialPlanSheet.show(
+                context,
+                totalBalance: walletProvider.totalBalance,
+                goal: {
+                  'name': 'Honda Winner X V4',
+                  'targetAmount': 50000000.0,
+                  'currentBalance': walletProvider.goalWallet?.currentBalance ?? 0.0,
+                },
+              );
+            },
+            icon: const Icon(Icons.auto_awesome_rounded, color: Colors.white),
+            label: const Text('Gemini AI tự tạo ngân sách', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF8B5CF6),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
             onPressed: () => _showSetBudgetBottomSheet(),
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Thiết lập ngay'),
+            label: const Text('Thiết lập thủ công'),
           ),
         ],
       ),
