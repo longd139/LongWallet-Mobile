@@ -746,12 +746,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        Icon(
-                          Icons.edit_outlined,
-                          size: 13,
-                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 6),
