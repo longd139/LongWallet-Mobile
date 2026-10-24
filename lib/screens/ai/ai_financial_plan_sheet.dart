@@ -468,7 +468,7 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
     );
   }
 
-  /// Nút điều hướng khảo sát Bước 0 (Tiếp tục / Câu trước / Tạo ngân sách)
+  /// Nút điều hướng khảo sát Bước 0 (Tiếp tục / Quay lại / Tạo ngân sách)
   Widget _buildStep0NavigationButtons(bool isDark) {
     final isLast = _currentQuestionIndex >= _totalQuestions - 1;
 
@@ -478,7 +478,7 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
           OutlinedButton.icon(
             onPressed: () => setState(() => _currentQuestionIndex--),
             icon: const Icon(Icons.arrow_back_rounded, size: 16),
-            label: const Text('Câu trước'),
+            label: const Text('Quay lại'),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -496,11 +496,13 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
                 size: 18,
               ),
               label: Text(
-                isLast ? 'Tạo ngân sách cá nhân hóa ngay' : 'Tiếp tục',
+                isLast ? 'Tạo ngân sách ngay' : 'Tiếp tục',
+                textAlign: TextAlign.center,
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF8B5CF6),
+                alignment: Alignment.center,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
             ),
@@ -519,11 +521,13 @@ class _AiFinancialPlanSheetState extends State<AiFinancialPlanSheet> {
         size: 18,
       ),
       label: Text(
-        isLast ? 'Tạo ngân sách cá nhân hóa ngay' : 'Tiếp tục',
+        isLast ? 'Tạo ngân sách ngay' : 'Tiếp tục',
+        textAlign: TextAlign.center,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF8B5CF6),
+        alignment: Alignment.center,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
