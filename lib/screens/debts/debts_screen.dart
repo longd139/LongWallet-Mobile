@@ -39,6 +39,7 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
   void _showAddDebtDialog(BuildContext context, {String? defaultType}) {
     final nameCtrl = TextEditingController();
     final amountCtrl = TextEditingController();
+    final monthlyCtrl = TextEditingController();
     final noteCtrl = TextEditingController();
     DateTime? selectedDueDate;
     String selectedType = defaultType ?? (_tabController.index == 0 ? 'DEBT' : 'LOAN');
@@ -176,12 +177,33 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                       color: selectedType == 'DEBT' ? const Color(0xFFEF4444) : AppTheme.primaryEmerald,
                     ),
                     decoration: InputDecoration(
-                      labelText: 'Số tiền (VNĐ)',
+                      labelText: selectedType == 'DEBT' ? 'Tổng số tiền nợ (VNĐ)' : 'Số tiền cho vay (VNĐ)',
                       hintText: '1.000.000',
                       prefixIcon: const Icon(Icons.monetization_on_outlined),
                     ),
                   ),
                   const SizedBox(height: 14),
+
+                  // Số tiền trả mỗi tháng (chỉ hiển thị khi là khoản Tôi nợ / Vay ngân hàng chia tháng)
+                  if (selectedType == 'DEBT') ...[
+                    TextField(
+                      controller: monthlyCtrl,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [ThousandsSeparatorInputFormatter()],
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                      decoration: const InputDecoration(
+                        labelText: 'Số tiền trả tháng này (VNĐ)',
+                        hintText: 'VD: 1.500.000 (để trống nếu trả hết 1 lần)',
+                        prefixIcon: Icon(Icons.calendar_month_rounded, color: Color(0xFFEF4444)),
+                        helperText: 'Dùng cho vay trả góp / chia kỳ hạn trả theo tháng',
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
 
                   // Chọn hạn trả nợ (DatePicker)
                   InkWell(
@@ -265,11 +287,17 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                         return;
                       }
 
+                      final monthlyText = monthlyCtrl.text.trim();
+                      final monthlyAmount = selectedType == 'DEBT' && monthlyText.isNotEmpty
+                          ? ThousandsSeparatorInputFormatter.parse(monthlyText)
+                          : null;
+
                       await context.read<DebtProvider>().addDebt(
                         personName: name,
                         amount: amount,
                         type: selectedType,
                         dueDate: selectedDueDate,
+                        monthlyAmount: monthlyAmount,
                         note: noteCtrl.text.trim().isNotEmpty ? noteCtrl.text.trim() : null,
                       );
 
@@ -653,6 +681,23 @@ class _DebtsScreenState extends State<DebtsScreen> with SingleTickerProviderStat
                             fontSize: 12,
                             color: isDark ? Colors.white70 : const Color(0xFF475569),
                             fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      if (isDebt && item.monthlyAmount != null && item.monthlyAmount! > 0) ...[
+                        Icon(
+                          Icons.calendar_month_rounded,
+                          size: 14,
+                          color: const Color(0xFFEF4444),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Trả tháng này: ${currencyFormatter.format(item.monthlyAmount)}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFFEF4444),
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(width: 12),

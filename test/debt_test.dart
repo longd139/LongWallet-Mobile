@@ -118,5 +118,39 @@ void main() {
       // 6.500.000 - 5.000.000 = 1.500.000
       expect(newTotalDebt, 1500000.0);
     });
+
+    test('totalMonthlyDebtDue calculates installment amount when monthlyAmount is set', () {
+      final bankInstallmentDebt = DebtModel(
+        id: 'd-bank',
+        userId: 'u-1',
+        personName: 'Vay ngân hàng MB',
+        amount: 24000000, // Tổng vay 24 triệu
+        monthlyAmount: 2000000, // Trả 2 triệu / tháng
+        type: 'DEBT',
+        isSettled: false,
+        createdAt: now,
+      );
+
+      final lumpSumDebt = DebtModel(
+        id: 'd-lump',
+        userId: 'u-1',
+        personName: 'Vay bạn',
+        amount: 500000, // Trả 1 lần 500k (không có monthlyAmount)
+        type: 'DEBT',
+        isSettled: false,
+        createdAt: now,
+      );
+
+      final debts = [bankInstallmentDebt, lumpSumDebt];
+      final monthlyDue = debts
+          .where((d) => d.type == 'DEBT' && !d.isSettled)
+          .fold(0.0, (sum, d) {
+            final m = (d.monthlyAmount != null && d.monthlyAmount! > 0) ? d.monthlyAmount! : d.amount;
+            return sum + m;
+          });
+
+      // 2.000.000 + 500.000 = 2.500.000 (thay vì 24.500.000)
+      expect(monthlyDue, 2500000.0);
+    });
   });
 }

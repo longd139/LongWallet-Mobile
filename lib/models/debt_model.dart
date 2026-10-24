@@ -5,6 +5,7 @@ class DebtModel {
   final double amount;
   final String type; // 'DEBT' (Tôi nợ), 'LOAN' (Cho vay)
   final DateTime? dueDate;
+  final double? monthlyAmount; // Số tiền phải trả hàng tháng (chia tháng)
   final bool isSettled;
   final String? note;
   final DateTime createdAt;
@@ -16,6 +17,7 @@ class DebtModel {
     required this.amount,
     required this.type,
     this.dueDate,
+    this.monthlyAmount,
     this.isSettled = false,
     this.note,
     required this.createdAt,
@@ -29,6 +31,9 @@ class DebtModel {
       amount: (json['amount'] as num).toDouble(),
       type: json['type'] as String,
       dueDate: json['due_date'] != null ? DateTime.parse(json['due_date'] as String) : null,
+      monthlyAmount: json['monthly_amount'] != null
+          ? (json['monthly_amount'] as num).toDouble()
+          : null,
       isSettled: json['is_settled'] as bool? ?? false,
       note: json['note'] as String?,
       createdAt: json['created_at'] != null
@@ -45,6 +50,7 @@ class DebtModel {
       'amount': amount,
       'type': type,
       'due_date': dueDate?.toIso8601String(),
+      'monthly_amount': monthlyAmount,
       'is_settled': isSettled,
       'note': note,
       'created_at': createdAt.toIso8601String(),
@@ -58,6 +64,7 @@ class DebtModel {
     double? amount,
     String? type,
     DateTime? dueDate,
+    double? monthlyAmount,
     bool? isSettled,
     String? note,
     DateTime? createdAt,
@@ -69,6 +76,7 @@ class DebtModel {
       amount: amount ?? this.amount,
       type: type ?? this.type,
       dueDate: dueDate ?? this.dueDate,
+      monthlyAmount: monthlyAmount ?? this.monthlyAmount,
       isSettled: isSettled ?? this.isSettled,
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,

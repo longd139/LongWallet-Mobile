@@ -216,6 +216,7 @@ class SupabaseService {
     required double amount,
     required String type,
     DateTime? dueDate,
+    double? monthlyAmount,
     String? note,
   }) async {
     final response = await client.from('debts').insert({
@@ -224,6 +225,7 @@ class SupabaseService {
       'amount': amount,
       'type': type,
       'due_date': dueDate?.toIso8601String(),
+      'monthly_amount': monthlyAmount,
       'note': note,
       'is_settled': false,
     }).select().single();

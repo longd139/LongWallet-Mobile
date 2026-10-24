@@ -515,6 +515,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildDebtCard(DebtProvider debtProvider) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final totalDebt = debtProvider.totalDebt;
+    final monthlyDue = debtProvider.totalMonthlyDebtDue;
     final totalLoan = debtProvider.totalLoan;
 
     return Material(
@@ -559,14 +560,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
-                          Icons.receipt_long_rounded,
+                          Icons.calendar_month_rounded,
                           size: 16,
                           color: Color(0xFFEF4444),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Tổng nợ (Cần trả)',
+                        'Cần trả tháng này',
                         style: TextStyle(
                           color: isDark ? Colors.white70 : const Color(0xFF475569),
                           fontSize: 13,
@@ -601,30 +602,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
-                    currencyFormatter.format(totalDebt),
+                    currencyFormatter.format(monthlyDue),
                     style: const TextStyle(
                       color: Color(0xFFEF4444),
-                      fontSize: 24,
+                      fontSize: 26,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  if (totalLoan > 0)
+                  if (totalDebt > 0)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryEmerald.withOpacity(isDark ? 0.2 : 0.1),
+                        color: const Color(0xFFEF4444).withOpacity(isDark ? 0.16 : 0.08),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        'Cho vay: +${currencyFormatter.format(totalLoan)}',
-                        style: const TextStyle(
-                          color: AppTheme.primaryEmerald,
+                        'Tổng dư nợ: ${currencyFormatter.format(totalDebt)}',
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : const Color(0xFF475569),
                           fontSize: 11,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     )
-                  else if (totalDebt == 0)
+                  else
                     Text(
                       'Không có nợ tồn đọng ✨',
                       style: TextStyle(
@@ -635,6 +636,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                 ],
               ),
+              if (totalLoan > 0) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.arrow_upward_rounded, size: 12, color: AppTheme.primaryEmerald),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Đang cho vay: +${currencyFormatter.format(totalLoan)}',
+                      style: const TextStyle(
+                        color: AppTheme.primaryEmerald,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

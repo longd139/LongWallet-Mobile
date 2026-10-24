@@ -15,6 +15,16 @@ class DebtProvider extends ChangeNotifier {
       .where((d) => d.type == 'DEBT' && !d.isSettled)
       .fold(0.0, (sum, d) => sum + d.amount);
 
+  /// Số tiền nợ cần phải trả trong tháng này (chia tháng hoặc trả 1 lần)
+  double get totalMonthlyDebtDue => _debts
+      .where((d) => d.type == 'DEBT' && !d.isSettled)
+      .fold(0.0, (sum, d) {
+        final monthly = (d.monthlyAmount != null && d.monthlyAmount! > 0)
+            ? d.monthlyAmount!
+            : d.amount;
+        return sum + monthly;
+      });
+
   /// Tổng số tiền người khác đang nợ mình (cho vay chưa thu hồi)
   double get totalLoan => _debts
       .where((d) => d.type == 'LOAN' && !d.isSettled)
@@ -41,6 +51,7 @@ class DebtProvider extends ChangeNotifier {
     required double amount,
     required String type,
     DateTime? dueDate,
+    double? monthlyAmount,
     String? note,
   }) async {
     final newDebt = await _supabaseService.createDebt(
@@ -48,6 +59,7 @@ class DebtProvider extends ChangeNotifier {
       amount: amount,
       type: type,
       dueDate: dueDate,
+      monthlyAmount: monthlyAmount,
       note: note,
     );
     _debts.insert(0, newDebt);
