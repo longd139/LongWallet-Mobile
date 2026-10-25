@@ -203,60 +203,58 @@ class _LoginScreenState extends State<LoginScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
                 // Animated Form Transition
-                ClipRect(
-                  child: AnimatedSize(
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 320),
+                  curve: Curves.easeInOutCubic,
+                  alignment: Alignment.topCenter,
+                  child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 320),
-                    curve: Curves.easeInOutCubic,
-                    alignment: Alignment.topCenter,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 320),
-                      switchInCurve: Curves.easeInOutCubic,
-                      switchOutCurve: Curves.easeInOutCubic,
-                      layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
-                        return Stack(
-                          alignment: Alignment.topCenter,
-                          children: <Widget>[
-                            ...previousChildren,
-                            if (currentChild != null) currentChild,
-                          ],
-                        );
-                      },
-                      transitionBuilder: (Widget child, Animation<double> animation) {
-                        final isIncoming = (_isSignUp && child.key == const ValueKey('signup_form')) ||
-                            (!_isSignUp && child.key == const ValueKey('login_form'));
+                    switchInCurve: Curves.easeInOutCubic,
+                    switchOutCurve: Curves.easeInOutCubic,
+                    layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+                      return Stack(
+                        alignment: Alignment.topCenter,
+                        children: <Widget>[
+                          ...previousChildren,
+                          if (currentChild != null) currentChild,
+                        ],
+                      );
+                    },
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      final isIncoming = (_isSignUp && child.key == const ValueKey('signup_form')) ||
+                          (!_isSignUp && child.key == const ValueKey('login_form'));
 
-                        final inOffset = Tween<Offset>(
-                          begin: Offset(_transitionDirection * 0.25, 0.0),
-                          end: Offset.zero,
-                        );
-                        final outOffset = Tween<Offset>(
-                          begin: Offset(-_transitionDirection * 0.25, 0.0),
-                          end: Offset.zero,
-                        );
+                      final inOffset = Tween<Offset>(
+                        begin: Offset(_transitionDirection * 0.25, 0.0),
+                        end: Offset.zero,
+                      );
+                      final outOffset = Tween<Offset>(
+                        begin: Offset(-_transitionDirection * 0.25, 0.0),
+                        end: Offset.zero,
+                      );
 
-                        return FadeTransition(
-                          opacity: CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut,
-                          ),
-                          child: SlideTransition(
-                            position: (isIncoming ? inOffset : outOffset).animate(
-                              CurvedAnimation(
-                                parent: animation,
-                                curve: Curves.easeInOutCubic,
-                              ),
+                      return FadeTransition(
+                        opacity: CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeInOut,
+                        ),
+                        child: SlideTransition(
+                          position: (isIncoming ? inOffset : outOffset).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOutCubic,
                             ),
-                            child: child,
                           ),
-                        );
-                      },
-                      child: _isSignUp
-                          ? _buildSignUpForm(auth)
-                          : _buildLoginForm(auth),
-                    ),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: _isSignUp
+                        ? _buildSignUpForm(auth)
+                        : _buildLoginForm(auth),
                   ),
                 ),
               ],
@@ -268,21 +266,23 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildLoginForm(AuthProvider auth) {
-    return SizedBox(
+    return Padding(
       key: const ValueKey('login_form'),
-      width: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          TextField(
-            controller: _loginEmailController,
-            onChanged: (_) => setState(() {}),
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              prefixIcon: Icon(Icons.email_outlined),
+      padding: const EdgeInsets.only(top: 8.0),
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _loginEmailController,
+              onChanged: (_) => setState(() {}),
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.email_outlined),
+              ),
             ),
-          ),
           const SizedBox(height: 16),
           TextField(
             controller: _loginPasswordController,
@@ -322,12 +322,15 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildSignUpForm(AuthProvider auth) {
-    return SizedBox(
-      key: const ValueKey('signup_form'),
+Widget _buildSignUpForm(AuthProvider auth) {
+  return Padding(
+    key: const ValueKey('signup_form'),
+    padding: const EdgeInsets.only(top: 8.0),
+    child: SizedBox(
       width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -415,6 +418,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
