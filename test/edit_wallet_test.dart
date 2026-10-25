@@ -141,6 +141,12 @@ void main() {
       expect(find.widgetWithText(TextField, 'Ngân hàng'), findsOneWidget);
       expect(find.widgetWithText(TextField, '9999'), findsOneWidget);
       expect(find.widgetWithText(TextField, '5.000.000'), findsOneWidget);
+
+      // Xác minh có option box 'Không tính vào báo cáo' và mặc định là true
+      expect(find.text('Không tính vào báo cáo'), findsOneWidget);
+      final checkboxFinder = find.byType(Checkbox);
+      expect(checkboxFinder, findsOneWidget);
+      expect((tester.widget(checkboxFinder) as Checkbox).value, isTrue);
     });
 
     testWidgets('Can edit account number and balance then save', (tester) async {

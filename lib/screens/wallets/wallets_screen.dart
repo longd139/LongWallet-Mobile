@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/currency_input_formatter.dart';
 import '../../models/wallet_model.dart';
+import '../../providers/transaction_provider.dart';
 
 class WalletsScreen extends StatelessWidget {
   const WalletsScreen({super.key});
@@ -106,6 +107,7 @@ class WalletsScreen extends StatelessWidget {
     );
     final accountCtrl = TextEditingController(text: wallet.accountNumber ?? '');
     String? selectedPackage = wallet.packageName;
+    bool excludeFromReport = true;
 
     final isGoal = wallet.bankCode == 'GOAL';
 
@@ -174,12 +176,52 @@ class WalletsScreen extends StatelessWidget {
                       inputFormatters: [ThousandsSeparatorInputFormatter()],
                       decoration: const InputDecoration(labelText: 'Số dư hiện tại (VND)', hintText: '0'),
                     ),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () => setModalState(() => excludeFromReport = !excludeFromReport),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: Checkbox(
+                                value: excludeFromReport,
+                                activeColor: AppTheme.primaryEmerald,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                onChanged: (val) => setModalState(() => excludeFromReport = val ?? true),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Không tính vào báo cáo',
+                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Chênh lệch số dư sẽ không ghi nhận vào báo cáo thu chi',
+                                    style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () async {
                         final name = nameCtrl.text.trim();
                         if (name.isEmpty) return;
-                        final balance = ThousandsSeparatorInputFormatter.parse(balanceCtrl.text);
+                        final newBalance = ThousandsSeparatorInputFormatter.parse(balanceCtrl.text);
+                        final oldBalance = wallet.currentBalance;
                         final bankCode = isGoal
                             ? 'GOAL'
                             : (selectedPackage != null ? AppConstants.bankPackages[selectedPackage] : 'CASH');
@@ -190,8 +232,34 @@ class WalletsScreen extends StatelessWidget {
                           bankCode: bankCode,
                           accountNumber: accountCtrl.text.trim().isNotEmpty ? accountCtrl.text.trim() : null,
                           packageName: isGoal ? null : selectedPackage,
-                          currentBalance: balance,
+                          currentBalance: newBalance,
                         );
+
+                        // Nếu KHÔNG tích "Không tính vào báo cáo" và có chênh lệch tiền:
+                        if (!excludeFromReport && newBalance != oldBalance) {
+                          final diff = newBalance - oldBalance;
+                          try {
+                            final txProvider = context.read<TransactionProvider>();
+                            await txProvider.addTransaction(
+                              walletId: wallet.id,
+                              amount: diff.abs(),
+                              type: diff > 0 ? 'INCOME' : 'EXPENSE',
+                              note: diff > 0
+                                  ? 'Điều chỉnh tăng số dư: $name'
+                                  : 'Điều chỉnh giảm số dư: $name',
+                            );
+                            await context.read<WalletProvider>().updateWallet(
+                              walletId: wallet.id,
+                              name: name,
+                              bankCode: bankCode,
+                              accountNumber: accountCtrl.text.trim().isNotEmpty ? accountCtrl.text.trim() : null,
+                              packageName: isGoal ? null : selectedPackage,
+                              currentBalance: newBalance,
+                            );
+                          } catch (e) {
+                            debugPrint('Adjustment transaction error: $e');
+                          }
+                        }
 
                         if (ctx.mounted) {
                           Navigator.pop(ctx);
