@@ -205,29 +205,6 @@ class _BudgetScreenState extends State<BudgetScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ngân sách chi tiêu'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF8B5CF6)),
-            tooltip: 'Gemini AI tạo ngân sách',
-            onPressed: () {
-              final walletProvider = context.read<WalletProvider>();
-              AiFinancialPlanSheet.show(
-                context,
-                totalBalance: walletProvider.totalBalance,
-                goal: {
-                  'name': 'Honda Winner X V4',
-                  'targetAmount': 50000000.0,
-                  'currentBalance': walletProvider.goalWallet?.currentBalance ?? 0.0,
-                },
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline_rounded, color: AppTheme.primaryEmerald),
-            tooltip: 'Thêm hạn mức thủ công',
-            onPressed: () => _showSetBudgetBottomSheet(),
-          ),
-        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
