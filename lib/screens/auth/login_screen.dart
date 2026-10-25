@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../core/theme/app_theme.dart';
+import 'register_success_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -70,34 +71,20 @@ class _LoginScreenState extends State<LoginScreen> {
       if (_isSignUp) {
         await auth.signUp(email, password, fullName: _fullNameController.text.trim());
         if (mounted) {
-          setState(() {
-            _isSignUp = false;
-            _passwordController.clear();
-            _confirmPasswordController.clear();
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Row(
-                children: [
-                  Icon(Icons.check_circle_rounded, color: Colors.white),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Đăng ký thành công! Vui lòng nhập lại mật khẩu để đăng nhập.',
-                      style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: AppTheme.primaryEmerald,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 4),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => RegisterSuccessScreen(email: email),
             ),
           );
+
+          if (mounted) {
+            setState(() {
+              _isSignUp = false;
+              _emailController.text = email;
+              _passwordController.clear();
+              _confirmPasswordController.clear();
+            });
+          }
         }
       } else {
         await auth.signIn(email, password);
