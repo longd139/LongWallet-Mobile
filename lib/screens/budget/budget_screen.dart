@@ -727,10 +727,21 @@ class _BudgetScreenState extends State<BudgetScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          OutlinedButton.icon(
+          ElevatedButton.icon(
             onPressed: () => _showSetBudgetBottomSheet(),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Thiết lập thủ công'),
+            icon: const Icon(Icons.add_rounded, color: AppTheme.primaryEmerald),
+            label: const Text(
+              'Thiết lập thủ công',
+              style: TextStyle(color: AppTheme.primaryEmerald, fontWeight: FontWeight.w600),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryEmerald.withOpacity(0.12),
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              side: BorderSide.none,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
           ),
         ],
       ),
