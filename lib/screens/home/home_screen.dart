@@ -38,12 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
   String _goalTitle = 'Honda Winner X V4';
   double _goalTargetAmount = 50000000;
   String _goalSlogan = 'Cày cuốc gom tiền – Quyết liền Winner X';
+  bool _isListeningNotifications = true;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
     _loadGoal();
+    _loadNotificationSettings();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WalletProvider>().fetchWallets();
       context.read<TransactionProvider>().fetchTransactions();
@@ -51,6 +53,15 @@ class _HomeScreenState extends State<HomeScreen> {
       _notificationService.requestPostNotificationPermission();
       _checkNotificationPermission();
     });
+  }
+
+  void _loadNotificationSettings() async {
+    final enabled = await NotificationService.loadEnabledState();
+    if (mounted) {
+      setState(() {
+        _isListeningNotifications = enabled;
+      });
+    }
   }
 
   void _loadGoal() async {
@@ -72,6 +83,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _checkNotificationPermission() async {
+    final enabled = await NotificationService.loadEnabledState();
+    if (mounted) {
+      setState(() {
+        _isListeningNotifications = enabled;
+      });
+    }
+
+    if (!enabled) {
+      _notificationService.stopListening();
+      return;
+    }
+
     final granted = await _notificationService.isPermissionGranted();
     if (!granted && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -91,6 +114,54 @@ class _HomeScreenState extends State<HomeScreen> {
           context.read<WalletProvider>().fetchWallets();
         }
       });
+    }
+  }
+
+  void _toggleNotificationListening(bool value) async {
+    setState(() {
+      _isListeningNotifications = value;
+    });
+    await NotificationService.setEnabled(value);
+
+    if (value) {
+      final granted = await _notificationService.isPermissionGranted();
+      if (!granted && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Vui lòng cấp quyền Truy cập thông báo trong Cài đặt'),
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Cài đặt',
+              onPressed: () => _notificationService.openSettings(),
+            ),
+          ),
+        );
+      } else {
+        _notificationService.startListening(onNewTransaction: (tx) {
+          if (mounted) {
+            context.read<TransactionProvider>().fetchTransactions();
+            context.read<WalletProvider>().fetchWallets();
+          }
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đã bật tính năng lắng nghe biến động số dư ngân hàng'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } else {
+      _notificationService.stopListening();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã tắt tính năng lắng nghe biến động số dư ngân hàng'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -1157,12 +1228,33 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                   const Divider(height: 1, indent: 64, endIndent: 16),
-                  ListTile(
-                    leading: const Icon(Icons.notifications_active_outlined, color: AppTheme.primaryEmerald),
-                    title: const Text('Lắng nghe biến động ngân hàng'),
-                    subtitle: const Text('Tự động ghi nhận chi tiêu từ SMS/Noti'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _notificationService.openSettings(),
+                  SwitchListTile(
+                    secondary: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: (_isListeningNotifications ? AppTheme.primaryEmerald : AppTheme.textMuted).withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        _isListeningNotifications
+                            ? Icons.notifications_active_rounded
+                            : Icons.notifications_off_rounded,
+                        color: _isListeningNotifications ? AppTheme.primaryEmerald : AppTheme.textMuted,
+                      ),
+                    ),
+                    title: const Text(
+                      'Lắng nghe biến động ngân hàng',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      _isListeningNotifications
+                          ? 'Tự động ghi nhận chi tiêu từ SMS/Noti'
+                          : 'Đã tạm dừng lắng nghe biến động',
+                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                    ),
+                    value: _isListeningNotifications,
+                    activeColor: AppTheme.primaryEmerald,
+                    onChanged: (val) => _toggleNotificationListening(val),
                   ),
                   ListTile(
                     leading: const Icon(Icons.account_balance_wallet_outlined, color: Colors.blueAccent),

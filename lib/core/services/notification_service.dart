@@ -1,12 +1,36 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'bank_parser_service.dart';
 import 'supabase_service.dart';
 
 class NotificationService {
   static const MethodChannel _methodChannel = MethodChannel('com.longwallet/native');
   static const EventChannel _eventChannel = EventChannel('com.longwallet/notification_stream');
+
+  static const String _prefKey = 'is_listening_notifications';
+  static bool isEnabled = true;
+
+  static Future<bool> loadEnabledState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      isEnabled = prefs.getBool(_prefKey) ?? true;
+      return isEnabled;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  static Future<void> setEnabled(bool enabled) async {
+    isEnabled = enabled;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_prefKey, enabled);
+    } catch (e) {
+      print('Failed to save notification listener state: $e');
+    }
+  }
 
   StreamSubscription? _subscription;
   final SupabaseService _supabaseService = SupabaseService();
@@ -75,8 +99,14 @@ class NotificationService {
 
   /// Start listening to background banking notifications
   void startListening({Function(ParsedBankTransaction)? onNewTransaction}) {
+    if (!isEnabled) {
+      print('Notification listening is disabled by user.');
+      stopListening();
+      return;
+    }
     _subscription?.cancel();
     _subscription = _eventChannel.receiveBroadcastStream().listen((dynamic event) async {
+      if (!isEnabled) return;
       if (event is Map) {
         final packageName = event['packageName'] as String? ?? '';
         final title = event['title'] as String? ?? '';
