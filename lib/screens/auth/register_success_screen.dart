@@ -5,13 +5,13 @@ import '../../core/theme/app_theme.dart';
 
 class RegisterSuccessScreen extends StatefulWidget {
   final String email;
-  final Duration delay;
+  final Duration? delay;
   final VoidCallback? onComplete;
 
   const RegisterSuccessScreen({
     super.key,
     required this.email,
-    this.delay = const Duration(seconds: 2),
+    this.delay,
     this.onComplete,
   });
 
@@ -84,16 +84,18 @@ class _RegisterSuccessScreenState extends State<RegisterSuccessScreen>
       if (mounted) _contentController.forward();
     });
 
-    // Tự động đóng sau delay quy định (mặc định 2 giây)
-    _timer = Timer(widget.delay, () {
-      if (mounted) {
-        if (widget.onComplete != null) {
-          widget.onComplete!();
-        } else {
-          Navigator.of(context).maybePop();
+    // Chỉ tự động đóng nếu có cấu hình delay cụ thể (mặc định không tự đóng)
+    if (widget.delay != null) {
+      _timer = Timer(widget.delay!, () {
+        if (mounted) {
+          if (widget.onComplete != null) {
+            widget.onComplete!();
+          } else {
+            Navigator.of(context).maybePop();
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   void _initParticles() {
@@ -280,7 +282,7 @@ class _RegisterSuccessScreenState extends State<RegisterSuccessScreen>
                               const SizedBox(height: 12),
 
                               const Text(
-                                'Tài khoản của bạn đã được khởi tạo thành công.\nHệ thống đang đưa bạn về trang đăng nhập...',
+                                'Tài khoản của bạn đã được khởi tạo thành công.\nHãy nhấn Tiếp tục để đăng nhập vào ví của bạn.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 14,
@@ -335,28 +337,36 @@ class _RegisterSuccessScreenState extends State<RegisterSuccessScreen>
                           ),
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 36),
 
-                      // Loading indicator thanh lịch xoay đều
-                      const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryEmerald),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Nút chuyển ngay nếu người dùng không muốn đợi
-                      TextButton(
-                        onPressed: _navigateBack,
-                        child: const Text(
-                          'Đăng nhập ngay',
-                          style: TextStyle(
-                            color: AppTheme.primaryEmerald,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                      // Nút Tiếp tục để người dùng chủ động quay lại màn hình Login
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _navigateBack,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryEmerald,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Tiếp tục',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Icon(Icons.arrow_forward_rounded, size: 20),
+                            ],
                           ),
                         ),
                       ),
