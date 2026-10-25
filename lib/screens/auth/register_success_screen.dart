@@ -6,11 +6,13 @@ import '../../core/theme/app_theme.dart';
 class RegisterSuccessScreen extends StatefulWidget {
   final String email;
   final Duration delay;
+  final VoidCallback? onComplete;
 
   const RegisterSuccessScreen({
     super.key,
     required this.email,
     this.delay = const Duration(seconds: 2),
+    this.onComplete,
   });
 
   @override
@@ -85,7 +87,11 @@ class _RegisterSuccessScreenState extends State<RegisterSuccessScreen>
     // Tự động đóng sau delay quy định (mặc định 2 giây)
     _timer = Timer(widget.delay, () {
       if (mounted) {
-        Navigator.of(context).pop();
+        if (widget.onComplete != null) {
+          widget.onComplete!();
+        } else {
+          Navigator.of(context).maybePop();
+        }
       }
     });
   }
@@ -134,7 +140,11 @@ class _RegisterSuccessScreenState extends State<RegisterSuccessScreen>
   void _navigateBack() {
     _timer?.cancel();
     if (mounted) {
-      Navigator.of(context).pop();
+      if (widget.onComplete != null) {
+        widget.onComplete!();
+      } else {
+        Navigator.of(context).maybePop();
+      }
     }
   }
 

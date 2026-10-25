@@ -5,6 +5,7 @@ class AuthProvider extends ChangeNotifier {
   final SupabaseClient _supabase = Supabase.instance.client;
   User? _user;
   bool _isLoading = false;
+  bool _isSigningUp = false;
 
   User? get user => _user;
   bool get isAuthenticated => _user != null;
@@ -13,6 +14,7 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider() {
     _user = _supabase.auth.currentUser;
     _supabase.auth.onAuthStateChange.listen((data) {
+      if (_isSigningUp) return;
       _user = data.session?.user;
       notifyListeners();
     });
@@ -35,6 +37,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> signUp(String email, String password, {String? fullName}) async {
     _isLoading = true;
+    _isSigningUp = true;
     notifyListeners();
     try {
       await _supabase.auth.signUp(
@@ -47,6 +50,7 @@ class AuthProvider extends ChangeNotifier {
       _user = null;
     } finally {
       _isLoading = false;
+      _isSigningUp = false;
       notifyListeners();
     }
   }

@@ -20,6 +20,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isSignUp = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _showRegisterSuccess = false;
+  String _registeredEmail = '';
 
   @override
   void dispose() {
@@ -71,28 +73,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (_isSignUp) {
         await auth.signUp(email, password, fullName: _fullNameController.text.trim());
         if (mounted) {
-          await Navigator.of(context).push(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  RegisterSuccessScreen(email: email),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(
-                  opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-                  child: child,
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 350),
-            ),
-          );
-
-          if (mounted) {
-            setState(() {
-              _isSignUp = false;
-              _emailController.text = email;
-              _passwordController.clear();
-              _confirmPasswordController.clear();
-            });
-          }
+          setState(() {
+            _showRegisterSuccess = true;
+            _registeredEmail = email;
+          });
         }
       } else {
         await auth.signIn(email, password);
@@ -108,6 +92,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_showRegisterSuccess) {
+      return RegisterSuccessScreen(
+        email: _registeredEmail,
+        onComplete: () {
+          if (mounted) {
+            setState(() {
+              _showRegisterSuccess = false;
+              _isSignUp = false;
+              _emailController.text = _registeredEmail;
+              _passwordController.clear();
+              _confirmPasswordController.clear();
+            });
+          }
+        },
+      );
+    }
+
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(

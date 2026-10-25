@@ -118,5 +118,29 @@ void main() {
       expect(didPop, isTrue);
       expect(find.text('Đăng ký thành công!'), findsNothing);
     });
+
+    testWidgets('Triggers onComplete callback directly when provided', (tester) async {
+      bool completed = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: RegisterSuccessScreen(
+            email: 'oncomplete@test.com',
+            delay: const Duration(seconds: 1),
+            onComplete: () {
+              completed = true;
+            },
+          ),
+        ),
+      );
+
+      expect(completed, isFalse);
+
+      // Chờ 1 giây
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(completed, isTrue);
+    });
   });
 }
