@@ -156,4 +156,27 @@ class WalletProvider extends ChangeNotifier {
     _wallets.add(newWallet);
     notifyListeners();
   }
+
+  Future<void> updateWallet({
+    required String walletId,
+    required String name,
+    String? bankCode,
+    String? accountNumber,
+    String? packageName,
+    required double currentBalance,
+  }) async {
+    final updated = await _supabaseService.updateWallet(
+      walletId: walletId,
+      name: name,
+      bankCode: bankCode,
+      accountNumber: accountNumber,
+      packageName: packageName,
+      currentBalance: currentBalance,
+    );
+    final index = _wallets.indexWhere((w) => w.id == walletId);
+    if (index != -1) {
+      _wallets[index] = updated;
+      notifyListeners();
+    }
+  }
 }

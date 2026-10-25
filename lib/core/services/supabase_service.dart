@@ -48,6 +48,30 @@ class SupabaseService {
     await client.from('wallets').delete().eq('id', walletId);
   }
 
+  Future<WalletModel> updateWallet({
+    required String walletId,
+    required String name,
+    String? bankCode,
+    String? accountNumber,
+    String? packageName,
+    required double currentBalance,
+  }) async {
+    final response = await client
+        .from('wallets')
+        .update({
+          'name': name,
+          'bank_code': bankCode,
+          'account_number': accountNumber,
+          'package_name': packageName,
+          'current_balance': currentBalance,
+        })
+        .eq('id', walletId)
+        .select()
+        .single();
+
+    return WalletModel.fromJson(response);
+  }
+
   // ===================== TRANSACTIONS =====================
   Future<List<TransactionModel>> getTransactions({int limit = 50}) async {
     final response = await client

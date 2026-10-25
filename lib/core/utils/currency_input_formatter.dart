@@ -6,7 +6,11 @@ class ThousandsSeparatorInputFormatter extends TextInputFormatter {
   /// Format chuỗi số nguyên hoặc số thành định dạng có dấu chấm (e.g. 50000000 -> 50.000.000)
   static String format(dynamic value) {
     if (value == null) return '';
-    final digits = value.toString().replaceAll(RegExp(r'[^\d]'), '');
+    String raw = value.toString();
+    if (raw.contains('.')) {
+      raw = raw.split('.').first;
+    }
+    final digits = raw.replaceAll(RegExp(r'[^\d]'), '');
     if (digits.isEmpty) return '';
 
     final buffer = StringBuffer();
