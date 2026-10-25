@@ -72,8 +72,16 @@ class _LoginScreenState extends State<LoginScreen> {
         await auth.signUp(email, password, fullName: _fullNameController.text.trim());
         if (mounted) {
           await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => RegisterSuccessScreen(email: email),
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  RegisterSuccessScreen(email: email),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(
+                  opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 350),
             ),
           );
 
